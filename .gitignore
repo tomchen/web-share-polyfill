@@ -1,7 +1,7 @@
 node_modules/
-dist/
-_site/
-coverage/
+/dist/
+/_site/
+/coverage/
 .vitest/
 *.log
 .DS_Store
