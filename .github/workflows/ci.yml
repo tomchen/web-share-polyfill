@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # The release workflow runs this before publishing
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Types, format, unit tests, build, package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-1.4.2-${{ hashFiles('bun.lock') }}
+      - run: bun install --frozen-lockfile
+      - name: Type check
+        run: bun run typecheck
+      - name: Format
+        run: bun run format:check
+      - name: Unit tests (happy-dom, with coverage)
+        run: bun run test:coverage
+      - name: Build
+        run: bun run build
+      - name: Tests of the built files and size budgets
+        run: bun run test:dist
+      - name: Package lint (publint, are-the-types-wrong)
+        run: bun run lint:pkg
+      - name: Size
+        run: cat dist/sizes.json >> "$GITHUB_STEP_SUMMARY"
+
+  browser:
+    name: Browser tests (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-1.4.2-${{ hashFiles('bun.lock') }}
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps ${{ matrix.browser }}
+      - run: bunx vitest run --project "browser (${{ matrix.browser }})"

@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>web-share-polyfill: navigator.share() for every browser</title>
+    <meta
+      name="description"
+      content="Web Share API polyfill with a native-looking share sheet: copy link, QR code, email and 40+ apps, in 70 languages."
+    />
+    <meta property="og:title" content="web-share-polyfill" />
+    <meta property="og:description" content="navigator.share() for every browser, with a native-looking share sheet." />
+    <meta property="og:image" content="img/android-light.png" />
+    <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script>
+      // The theme chosen with the button, before the page shows (the system's otherwise)
+      try {
+        const theme = localStorage.getItem('wsp-site-theme')
+        if (theme) document.documentElement.dataset.theme = theme
+      } catch {}
+    </script>
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <header class="top">
+      <div class="top-in">
+        <a class="brand" href="#">
+          <img src="icon.svg" width="24" height="24" alt="" />
+          web-share-polyfill
+        </a>
+        <nav class="nav" aria-label="Sections">
+          <a href="#support" data-t="nav_support">Browsers</a>
+          <a href="#playground" data-t="nav_play">Playground</a>
+          <a href="#usage" data-t="nav_usage">Usage</a>
+          <a href="#options" data-t="nav_options">Options</a>
+          <a href="#targets" data-t="nav_targets">Targets</a>
+          <a href="#languages" data-t="nav_langs">Languages</a>
+          <a href="#styling" data-t="nav_style">Styling</a>
+        </nav>
+        <div class="top-end">
+          <div class="lang-menu" id="lang-menu">
+            <button class="icon-link" type="button" id="lang-btn" aria-expanded="false" aria-controls="lang-pop">
+              <!-- Lucide "languages" icon (ISC license) -->
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m5 8 6 6" />
+                <path d="m4 14 6-6 2-3" />
+                <path d="M2 5h12" />
+                <path d="M7 2h1" />
+                <path d="m22 22-5-10-5 10" />
+                <path d="M14 18h6" />
+              </svg>
+            </button>
+            <div class="lang-pop" id="lang-pop"><ul id="site-lang"></ul></div>
+          </div>
+          <button class="icon-link" type="button" id="theme-btn" aria-pressed="false">
+            <!-- Lucide "sun" and "moon" icons (ISC license) -->
+            <svg class="sun" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+            </svg>
+            <svg class="moon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
+          </button>
+          <a class="icon-link" href="https://www.npmjs.com/package/web-share-polyfill" aria-label="npm">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="fill">
+              <path
+                d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"
+              />
+            </svg>
+          </a>
+          <a class="icon-link" href="https://github.com/tomchen/web-share-polyfill" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="fill">
+              <path
+                d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero wrap">
+        <div class="hero-text">
+          <p class="eyebrow">Web Share API polyfill · MIT</p>
+          <h1 data-th="hero_title_html"><code>navigator.share()</code> for every browser</h1>
+          <p class="lede" data-t="hero_lede"></p>
+          <div class="actions">
+            <button class="btn primary" id="share-page" type="button" data-t="hero_share">Share this page</button>
+            <button class="btn" id="share-fallback" type="button" data-t="hero_polyfill" hidden>The polyfill's sheet</button>
+          </div>
+          <p class="note" id="hero-note" data-t="hero_note_polyfill"></p>
+          <div class="install">
+            <code id="install-cmd">npm i web-share-polyfill</code>
+            <button class="copy" type="button" data-copy="install-cmd" data-t="copy">Copy</button>
+          </div>
+          <dl class="facts">
+            <div><dt id="fact-size">4.5 KB</dt><dd data-t="fact_core">core, gzipped</dd></div>
+            <div><dt id="fact-targets">45</dt><dd data-t="fact_targets">share targets</dd></div>
+            <div><dt id="fact-langs">70</dt><dd data-t="fact_langs">languages</dd></div>
+          </dl>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <img src="img/ios-light.png" width="390" height="492" alt="" class="art-a" />
+          <img src="img/android-dark-zh.png" width="390" height="321" alt="" class="art-b" />
+        </div>
+      </section>
+
+      <section id="support" class="section wrap">
+        <div class="section-head">
+          <h2 data-t="compat_title">Browser support</h2>
+          <p data-t="compat_lede"></p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="compat-on" role="switch" />
+          <span class="switch-ui" aria-hidden="true"></span>
+          <span data-t="compat_toggle">With web-share-polyfill</span>
+        </label>
+        <div class="table-wrap compat-wrap"><table class="compat" id="compat"></table></div>
+        <ul class="compat-legend" id="compat-legend"></ul>
+        <ol class="compat-notes" id="compat-notes"></ol>
+        <p class="hint" id="compat-src"></p>
+        <h3 class="h3" id="beyond" data-t="beyond_title">Where the native API says no</h3>
+        <div class="table-wrap">
+          <table class="table beyond">
+            <thead>
+              <tr><th data-t="beyond_native">Native navigator.share()</th><th data-t="compat_poly">With the polyfill</th></tr>
+            </thead>
+            <tbody>
+              <tr><td data-th="beyond_1n"></td><td data-th="beyond_1p"></td></tr>
+              <tr><td data-th="beyond_2n"></td><td data-th="beyond_2p"></td></tr>
+              <tr><td data-th="beyond_3n"></td><td data-th="beyond_3p"></td></tr>
+              <tr><td data-th="beyond_4n"></td><td data-th="beyond_4p"></td></tr>
+              <tr><td data-th="beyond_5n"></td><td data-th="beyond_5p"></td></tr>
+              <tr><td data-th="beyond_6n"></td><td data-th="beyond_6p"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="playground" class="section wrap">
+        <div class="section-head">
+          <h2 data-t="play_title">Playground</h2>
+          <p data-t="play_lede"></p>
+        </div>
+        <div class="play">
+          <div class="panel controls">
+            <fieldset>
+              <legend data-t="play_setup">Setup</legend>
+              <div class="opt-row">
+                <span class="opt-label" data-t="play_install">Install with</span>
+                <div class="seg" role="radiogroup">
+                  <label><input type="radio" name="p-install" value="npm" checked /><span data-t="install_npm">npm or similar</span></label>
+                  <label><input type="radio" name="p-install" value="html" /><span data-t="install_html">HTML &lt;script&gt;</span></label>
+                </div>
+              </div>
+              <div class="opt-row" id="p-codestyle-row">
+                <span class="opt-label" data-t="play_codestyle">Code</span>
+                <div class="seg" role="radiogroup">
+                  <label><input type="radio" name="p-codestyle" value="short" checked /><span data-t="code_short">Short</span></label>
+                  <label><input type="radio" name="p-codestyle" value="small" /><span data-t="code_small">Smallest</span></label>
+                </div>
+              </div>
+              <p class="hint" id="p-codestyle-hint"></p>
+              <div class="opt-row">
+                <span class="opt-label" data-t="play_api">API</span>
+                <div class="seg" role="radiogroup">
+                  <label><input type="radio" name="p-api" value="polyfill" checked /><span class="mono">navigator.share()</span></label>
+                  <label><input type="radio" name="p-api" value="call" /><span class="mono">share()</span></label>
+                </div>
+              </div>
+              <p class="hint" id="p-api-hint"></p>
+            </fieldset>
+
+            <fieldset>
+              <legend data-t="play_targets">Share targets</legend>
+              <div class="seg" role="radiogroup" id="p-presets">
+                <label><input type="radio" name="p-preset" value="default" /><span data-t="preset_default">Default</span></label>
+                <label><input type="radio" name="p-preset" value="simple" /><span data-t="preset_simple">Simple</span></label>
+                <label><input type="radio" name="p-preset" value="minimal" /><span data-t="preset_minimal">Minimal</span></label>
+                <label><input type="radio" name="p-preset" value="eastasia" /><span data-t="preset_eastasia">East Asia</span></label>
+              </div>
+              <p class="hint" id="p-preset-hint"></p>
+              <p class="hint" data-t="targets_hint"></p>
+              <div class="ltabs" id="p-tlangs"></div>
+              <p class="sub" data-t="play_selected">Shown, in this order</p>
+              <ol id="p-selected" class="selected"></ol>
+              <p class="sub" data-t="play_available">Click to add</p>
+              <div id="p-available" class="chips"></div>
+              <label class="field" id="p-appid-field" hidden>
+                <span data-t="play_appid">Facebook app ID for Messenger</span>
+                <input id="p-appid" type="text" inputmode="numeric" placeholder="1234567890" />
+              </label>
+              <details class="more-opts" id="p-own-box">
+                <summary data-t="play_own">Your own target</summary>
+                <label class="check"><input type="checkbox" id="p-own-on" /><span data-t="play_own_on">Use your own target</span></label>
+                <div class="grid2">
+                  <label class="field"><span class="mono">id</span><input id="p-own-id" type="text" value="mysite" /></label>
+                  <label class="field"><span class="mono">name</span><input id="p-own-name" type="text" value="My Site" /></label>
+                  <label class="field"><span class="mono">color</span><input id="p-own-color" type="color" value="#ff6a00" /></label>
+                  <label class="field"><span class="mono">icon</span><input id="p-own-icon" type="text" placeholder="M12 2a10 10 0 1 0 0 20…" /></label>
+                </div>
+                <label class="field"><span class="mono">url</span><input id="p-own-url" type="text" value="https://example.com/share?url={url}&amp;title={title}" /></label>
+                <p class="hint" data-t="own_hint"></p>
+              </details>
+            </fieldset>
+
+            <fieldset>
+              <legend data-t="play_langs">Languages</legend>
+              <div class="seg" role="radiogroup">
+                <label><input type="radio" name="p-lmode" value="viewer" checked /><span data-t="lmode_viewer">Viewer's language</span></label>
+                <label><input type="radio" name="p-lmode" value="one" /><span data-t="lmode_one">One language</span></label>
+              </div>
+              <div id="p-lviewer">
+                <div class="lang-tools">
+                  <button type="button" class="copy" data-preset="common" data-t="langs_common">Common</button>
+                  <button type="button" class="copy" data-preset="all" data-t="langs_all">All</button>
+                  <button type="button" class="copy" data-preset="none" data-t="langs_none">None</button>
+                  <span class="hint" id="p-lcount"></span>
+                </div>
+                <div class="lang-picks" id="p-langs"></div>
+                <label class="field">
+                  <span data-t="play_fallback">Fallback</span>
+                  <select id="p-fallback"></select>
+                </label>
+                <p class="hint" data-t="fallback_hint"></p>
+              </div>
+              <label class="field" id="p-lone" hidden>
+                <span data-t="play_one">Language</span>
+                <select id="p-one"></select>
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend data-t="play_appearance">Appearance</legend>
+              <div class="grid2">
+                <label class="field">
+                  <span data-t="play_look">Look</span>
+                  <select id="p-look">
+                    <option value="" data-t="look_auto">Auto</option>
+                    <option value="apple" data-t="look_apple">iOS / macOS</option>
+                    <option value="material" data-t="look_material">Android / Chrome</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span data-t="play_theme">Theme</span>
+                  <select id="p-theme">
+                    <option value="" data-t="theme_auto">System</option>
+                    <option value="light" data-t="theme_light">Light</option>
+                    <option value="dark" data-t="theme_dark">Dark</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span data-t="play_accent">Accent color</span>
+                  <span class="inline">
+                    <input id="p-accent-on" type="checkbox" aria-label="Custom accent color" />
+                    <input id="p-accent" type="color" value="#7c3aed" disabled />
+                  </span>
+                </label>
+                <label class="field">
+                  <span data-t="play_radius">Corner radius</span>
+                  <select id="p-radius">
+                    <option value="" data-t="radius_default">Default</option>
+                    <option value="0px">0</option>
+                    <option value="8px">8 px</option>
+                    <option value="12px">12 px</option>
+                    <option value="16px">16 px</option>
+                    <option value="20px">20 px</option>
+                    <option value="24px">24 px</option>
+                    <option value="32px">32 px</option>
+                  </select>
+                </label>
+              </div>
+              <label class="check"><input type="checkbox" id="p-native" checked /><span data-t="play_native"></span></label>
+              <details class="more-opts">
+                <summary data-t="play_text">UI text</summary>
+                <p class="hint" data-t="text_hint"></p>
+                <div class="ltabs" id="p-stabs"></div>
+                <div class="grid2" id="p-strings"></div>
+              </details>
+            </fieldset>
+
+            <fieldset>
+              <legend data-t="play_test">Test data</legend>
+              <label class="field"><span class="mono">title</span><input id="p-title" type="text" placeholder="document.title" /></label>
+              <label class="field"><span class="mono">text</span><input id="p-text" type="text" /></label>
+              <label class="field"><span class="mono">url</span><input id="p-url" type="url" placeholder="location.href" /></label>
+              <label class="field"><span class="mono">files</span><input id="p-files" type="file" multiple /></label>
+              <p class="hint" data-t="test_hint"></p>
+            </fieldset>
+          </div>
+
+          <div class="panel output">
+            <button class="btn primary big" id="p-open" type="button" data-t="play_open">Share</button>
+            <div class="result">
+              <span class="result-label" data-t="play_result">Result</span>
+              <output id="p-result" class="muted" data-t="result_empty"></output>
+            </div>
+            <div class="size">
+              <span class="result-label" data-t="play_size">Size</span>
+              <strong id="p-size">…</strong>
+              <span class="hint" id="p-size-note"></span>
+            </div>
+            <div id="p-code"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="usage" class="section wrap">
+        <div class="section-head"><h2 data-t="usage_title">Usage</h2></div>
+        <div class="usage">
+          <div class="usage-item">
+            <div class="usage-head">
+              <p data-t="usage_install">Install</p>
+              <div class="seg sm pm" role="radiogroup" id="pm-usage"></div>
+            </div>
+            <pre class="code" id="usage-install">npm i web-share-polyfill</pre>
+          </div>
+          <div class="usage-item">
+            <p data-th="usage_auto_html"></p>
+            <pre class="code" data-code="js">import 'web-share-polyfill/auto'
+
+button.addEventListener('click', () => {
+  navigator.share({ title: document.title, url: location.href }).catch(() => {})
+})</pre>
+          </div>
+          <div class="usage-item">
+            <p data-th="usage_pick_html"></p>
+            <pre class="code" data-code="js">import { polyfill } from 'web-share-polyfill'
+import { copy, qr, email, whatsapp, facebook, x, telegram } from 'web-share-polyfill/targets'
+import { fr, zh, zhHant, ja } from 'web-share-polyfill/locales'
+
+polyfill({
+  targets: [copy, qr, email, whatsapp, facebook, x, telegram],
+  locales: [fr, zh, zhHant, ja], // English is built in
+})</pre>
+          </div>
+          <div class="usage-item">
+            <p data-th="usage_direct_html"></p>
+            <pre class="code" data-code="js">import { share } from 'web-share-polyfill'
+import { copy, qr, x } from 'web-share-polyfill/targets'
+
+const id = await share({ url: location.href }, { targets: [copy, qr, x] })
+// 'native', 'copy', 'qr' or 'x'</pre>
+          </div>
+          <div class="usage-item">
+            <p data-th="usage_script_html"></p>
+            <pre class="code" data-code="html">&lt;script src="https://cdn.jsdelivr.net/npm/web-share-polyfill"&gt;&lt;/script&gt;
+&lt;script&gt;
+  WebSharePolyfill.polyfill({ targets: { '*': ['copy', 'qr', 'x'], zh: ['copy', 'qr', 'wechat', 'weibo'] } })
+&lt;/script&gt;</pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="options" class="section wrap">
+        <div class="section-head"><h2 data-t="options_title">Options</h2></div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th data-t="opt_name">Option</th><th>Type</th><th data-t="opt_default">Default</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>targets</code></td><td><code>ShareTarget[]</code></td><td><code>[]</code></td><td data-t="opt_targets"></td></tr>
+              <tr><td><code>locales</code></td><td><code>string[]</code></td><td><code>[en]</code></td><td data-t="opt_locales"></td></tr>
+              <tr><td><code>lang</code></td><td><code>string | string[]</code></td><td><code>navigator.languages</code></td><td data-t="opt_lang"></td></tr>
+              <tr><td><code>fallback</code></td><td><code>string</code></td><td><code>'en'</code></td><td data-t="opt_fallback"></td></tr>
+              <tr><td><code>strings</code></td><td><code>Partial&lt;Strings&gt;</code></td><td></td><td data-t="opt_strings"></td></tr>
+              <tr><td><code>look</code></td><td><code>'apple' | 'material'</code></td><td>auto</td><td data-t="opt_look"></td></tr>
+              <tr><td><code>theme</code></td><td><code>'light' | 'dark'</code></td><td>auto</td><td data-t="opt_theme"></td></tr>
+              <tr><td><code>native</code></td><td><code>boolean</code></td><td><code>true</code></td><td data-t="opt_native"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="targets" class="section wrap">
+        <div class="section-head">
+          <h2 data-t="targets_title">Targets</h2>
+          <p data-t="targets_lede"></p>
+        </div>
+        <h3 class="h3" data-t="targets_actions">Actions</h3>
+        <div class="gallery" id="g-actions"></div>
+        <h3 class="h3" data-t="targets_apps">Apps</h3>
+        <div class="gallery" id="g-apps"></div>
+
+        <h3 class="h3" id="defaults" data-t="defaults_title">Default targets by language</h3>
+        <p class="para" data-th="defaults_lede_html"></p>
+        <div class="table-wrap">
+          <table class="table defaults">
+            <tbody id="defaults-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="languages" class="section wrap">
+        <div class="section-head">
+          <h2 data-t="langs_title">Languages</h2>
+          <p data-t="langs_lede"></p>
+        </div>
+        <div class="langs" id="langs"></div>
+      </section>
+
+      <section id="styling" class="section wrap">
+        <div class="section-head"><h2 data-t="style_title">Styling</h2></div>
+        <p class="para" data-th="style_lede_html"></p>
+        <pre class="code" data-code="css">web-share-polyfill {
+  --wsp-accent: #7c3aed; /* focus ring */
+  --wsp-bg: #fff;        /* sheet */
+  --wsp-fg: #111;        /* text */
+  --wsp-muted: #666;     /* secondary text */
+  --wsp-tile: #eee;      /* action buttons */
+  --wsp-line: #ddd;      /* separators */
+  --wsp-radius: 20px;
+  --wsp-font: 'Inter', sans-serif;
+  --wsp-backdrop: rgb(0 0 0 / .5);
+}
+
+/* Parts: sheet, close, target, icon, label */
+web-share-polyfill::part(target) { border-radius: 8px; }</pre>
+      </section>
+
+      <section id="how" class="section wrap">
+        <div class="section-head"><h2 data-t="how_title">How it decides</h2></div>
+        <ol class="steps">
+          <li data-th="how_1_html"></li>
+          <li data-th="how_2_html"></li>
+          <li data-th="how_3_html"></li>
+        </ol>
+      </section>
+
+      <section id="size" class="section wrap">
+        <div class="section-head">
+          <h2 data-t="size_title">Size</h2>
+          <p data-t="size_lede"></p>
+        </div>
+        <div class="table-wrap">
+          <table class="table sizes">
+            <thead><tr><th></th><th>min</th><th>gzip</th><th>brotli</th></tr></thead>
+            <tbody id="sizes-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot wrap">
+      <p data-th="footer_html"></p>
+      <p>
+        <a href="https://github.com/tomchen/web-share-polyfill">GitHub</a> ·
+        <a href="https://www.npmjs.com/package/web-share-polyfill">npm</a>
+      </p>
+    </footer>
+  </body>
+</html>

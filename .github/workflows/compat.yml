@@ -1,0 +1,54 @@
+# Tests which desktop browsers have a native navigator.share(), on each OS, in the real browsers the
+# runners come with (Chrome, Edge, Firefox; Safari on macOS). MDN's data has no per-OS detail.
+# Commits the results to site/probe.json when they change, for the browser support table on the site.
+name: Browser support
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node scripts/probe.mjs > probe-${{ matrix.os }}.json
+      - run: cat probe-${{ matrix.os }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe-${{ matrix.os }}
+          path: probe-${{ matrix.os }}.json
+
+  update:
+    needs: probe
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: probe-*
+          merge-multiple: true
+      - run: node scripts/probe.mjs --merge probe-*.json
+      - name: Commit the results if they changed
+        run: |
+          git diff --quiet site/probe.json && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Update the tested browser support' site/probe.json
+          git push
