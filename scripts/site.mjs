@@ -92,6 +92,6 @@ const compat = {
 writeFileSync('_site/lib/compat.json', JSON.stringify(compat) + '\n')
 // GitHub Pages: serve files as is
 writeFileSync('_site/.nojekyll', '')
-// For a custom domain later (e.g. web-share-polyfill.js.org), set SITE_CNAME in the Pages workflow
+// Custom domain: SITE_CNAME is set in the Pages workflow
 if (process.env.SITE_CNAME) writeFileSync('_site/CNAME', process.env.SITE_CNAME + '\n')
 console.log('Site ready in _site/')

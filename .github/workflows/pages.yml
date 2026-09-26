@@ -37,6 +37,8 @@ jobs:
           key: ${{ runner.os }}-bun-1.4.2-${{ hashFiles('bun.lock') }}
       - run: bun install --frozen-lockfile
       - run: bun run site
+        env:
+          SITE_CNAME: web-share-polyfill.js.org
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

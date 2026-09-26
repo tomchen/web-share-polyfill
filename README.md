@@ -4,7 +4,7 @@
 
 `navigator.share()` for every browser. When the browser has its own share sheet, it is used. When it doesn't (Chrome and Edge on Linux, Firefox on desktop, in-app browsers, iframes without permission), a small share sheet that looks like the native one opens instead: copy link, QR code, email, SMS, and 40+ apps, in 70 languages.
 
-**[Docs and live demo](https://tomchen.github.io/web-share-polyfill/)**
+**[Docs and live demo](https://web-share-polyfill.js.org/)**
 
 <p>
   <img src="https://raw.githubusercontent.com/tomchen/web-share-polyfill/main/site/img/android-light.png" width="200" alt="Share sheet, Android look">
@@ -119,7 +119,7 @@ With the script tag, the same API is on `window.WebSharePolyfill`:
 </script>
 ```
 
-[Try it](https://tomchen.github.io/web-share-polyfill/#playground) on the site: it builds any of these setups for you (npm or script tag, targets, languages, fallback, look, text) and gives you the code to paste.
+[Try it](https://web-share-polyfill.js.org/#playground) on the site: it builds any of these setups for you (npm or script tag, targets, languages, fallback, look, text) and gives you the code to paste.
 
 ## Options
 

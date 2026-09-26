@@ -15,7 +15,7 @@
     "social",
     "fallback"
   ],
-  "homepage": "https://tomchen.github.io/web-share-polyfill/",
+  "homepage": "https://web-share-polyfill.js.org/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tomchen/web-share-polyfill.git"
