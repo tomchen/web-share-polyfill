@@ -42,9 +42,17 @@
       "types": "./dist/full.d.ts",
       "default": "./dist/full.js"
     },
-    "./auto": {
-      "types": "./dist/auto.d.ts",
-      "default": "./dist/auto.js"
+    "./common": {
+      "types": "./dist/common.d.ts",
+      "default": "./dist/common.js"
+    },
+    "./all": {
+      "types": "./dist/all.d.ts",
+      "default": "./dist/all.js"
+    },
+    "./simple": {
+      "types": "./dist/simple.d.ts",
+      "default": "./dist/simple.js"
     },
     "./qr": {
       "types": "./dist/qr.d.ts",
@@ -58,7 +66,9 @@
   "unpkg": "./dist/web-share-polyfill.js",
   "jsdelivr": "./dist/web-share-polyfill.js",
   "sideEffects": [
-    "./dist/auto.js",
+    "./dist/common.js",
+    "./dist/all.js",
+    "./dist/simple.js",
     "./dist/web-share-polyfill.js"
   ],
   "files": [

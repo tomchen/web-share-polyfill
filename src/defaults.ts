@@ -1,4 +1,4 @@
-// The default target ids by viewer language, shared by /full and /auto.
+// The default target ids by viewer language, shared by /full, /common and /all.
 const RU = 'copy qr email sms telegram whatsapp vk ok more'
 
 /**
@@ -21,6 +21,7 @@ for (const [lang, ids] of Object.entries({
   th: 'copy qr email sms line facebook x more',
   vi: 'copy qr email sms facebook telegram x more',
   fa: 'copy qr email sms telegram whatsapp x more',
+  ar: 'copy qr email sms whatsapp facebook x telegram snapchat more',
 }))
   // `save` only shows up when sharing files
   defaults[lang] = ids.replace('copy', 'copy save').split(' ')

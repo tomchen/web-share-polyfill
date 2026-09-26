@@ -1,6 +1,6 @@
 /**
  * Everything included: all targets, all locales, and default targets chosen from the
- * viewer's language. Use this (or `web-share-polyfill/auto`) when bundle size matters less
+ * viewer's language. Use this (or `web-share-polyfill/common` or `/all`) when bundle size matters less
  * than convenience; import from the main entry, `/targets` and `/locales` to tree-shake.
  */
 import * as T from './targets.js'

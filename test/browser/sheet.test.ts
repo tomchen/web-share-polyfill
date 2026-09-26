@@ -203,6 +203,22 @@ describe('styling', () => {
     }
   })
 
+  it('keeps the page’s custom properties with the same names out', async () => {
+    const style = document.head.appendChild(document.createElement('style'))
+    style.textContent = ':root { --c: rgb(255, 0, 0); --g: rgb(0, 255, 0); --t: rgb(0, 0, 255) }'
+    try {
+      await open({ targets: [T.copy, T.x], theme: 'light' })
+      // An action tile: the sheet's own colors, not the page's
+      const tile = css(item('copy').querySelector('.c')!)
+      expect(tile.backgroundColor).toBe('rgb(237, 240, 243)')
+      expect(tile.color).not.toBe('rgb(0, 255, 0)')
+      // An app tile: its brand color
+      expect(css(item('x').querySelector('.c')!).backgroundColor).toBe('rgb(0, 0, 0)')
+    } finally {
+      style.remove()
+    }
+  })
+
   it('lays out right to left for RTL languages', async () => {
     await open({ lang: 'ar', locales: [L.ar], targets: [T.x] })
     expect(css(dialog()).direction).toBe('rtl')

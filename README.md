@@ -35,17 +35,25 @@ Or with a script tag, which installs the polyfill with every target and language
 
 ## Usage
 
-### Everything, automatic
+### Ready-made, in one line
 
 ```js
-import 'web-share-polyfill/auto'
+import 'web-share-polyfill/common'
 
 button.addEventListener('click', () => {
   navigator.share({ title: document.title, url: location.href }).catch(() => {})
 })
 ```
 
-This installs `navigator.share()` and `navigator.canShare()` with every language and the [default targets](#default-targets-by-language), picked from the viewer's language. It bundles only those targets; use `/full` to pick any target by id.
+This installs `navigator.share()` and `navigator.canShare()` with the [default targets](#default-targets-by-language) for the viewer's language and the 20 most common languages (English, Simplified and Traditional Chinese, Japanese, Korean, Spanish, French, German, Portuguese, Italian, Dutch, Russian, Ukrainian, Polish, Turkish, Arabic, Hindi, Indonesian, Vietnamese and Thai; other viewers get English). There are three ready-made entries:
+
+| Entry | Targets | Languages |
+| --- | --- | --- |
+| `web-share-polyfill/common` | The defaults, by the viewer's language | The 20 common ones |
+| `web-share-polyfill/all` | The defaults, by the viewer's language | All 70 |
+| `web-share-polyfill/simple` | One list for everyone | English |
+
+Each bundles only the targets it uses, and also exports `share()` with the same defaults, which resolves with the id of the target used: `import { share } from 'web-share-polyfill/common'`. To pick any target by id, use [`/full`](#everything-with-ids).
 
 ### Choose targets (recommended)
 
@@ -76,7 +84,7 @@ const id = await share({ url: location.href }, { targets: [copy, qr, x] })
 
 ### Different targets by language
 
-`targets` can also be one list per viewer language, with `'*'` for everyone else. The sheet uses the list that matches the viewer's language (`zh-TW` gets `zh-hant`, `pt-BR` gets `pt`):
+`targets` can also be one list per viewer language, with `'*'` for everyone else. The sheet uses the list for the viewer's preferred language (`zh-TW` gets `zh-hant`, `pt-BR` gets `pt`), or `'*'` when that language has none: someone who prefers English, then Chinese, gets the `'*'` list, like the English interface they see.
 
 ```js
 import { polyfill } from 'web-share-polyfill'
@@ -170,7 +178,7 @@ Not included: Skype, Pocket and Mix (shut down), the KakaoStory share link (disc
 
 ### Default targets by language
 
-With `/full`, `/auto` or the script tag, and exported as `defaults` (`'*'` for the other languages). Actions come first in the list and are shown apart from the apps.
+With `/full`, `/common`, `/all` or the script tag, and exported as `defaults` (`'*'` for the other languages). Actions come first in the list and are shown apart from the apps.
 
 | Language | Targets |
 | --- | --- |
@@ -184,6 +192,7 @@ With `/full`, `/auto` or the script tag, and exported as `defaults` (`'*'` for t
 | Thai | copy, qr, email, sms, LINE, Facebook, X, more |
 | Vietnamese | copy, qr, email, sms, Facebook, Telegram, X, more |
 | Persian | copy, qr, email, sms, Telegram, WhatsApp, X, more |
+| Arabic | copy, qr, email, sms, WhatsApp, Facebook, X, Telegram, Snapchat, more |
 | Other languages | copy, qr, email, sms, WhatsApp, Facebook, X, Telegram, LinkedIn, Reddit, more |
 
 `sms` only appears on touch screens, `more` only when the browser has a share sheet of its own, and `save` (after `copy` in every list) only when sharing files.
@@ -263,9 +272,12 @@ Minified and gzipped, measured by the build (`dist/sizes.json`):
 | | gzip | brotli |
 | --- | --- | --- |
 | Core (`polyfill()`, English, no targets) | 4.5 KB | 4.0 KB |
+| Core + copy, save, qr, email, sms, more (the Minimal preset) | 7.2 KB | 6.5 KB |
 | Core + copy, qr, email and 5 apps | 7.9 KB | 7.1 KB |
-| Default targets, every language (`/auto`) | 17.8 KB | 14.9 KB |
-| Everything (`/full`, script tag) | 21.2 KB | 17.8 KB |
+| One target list, English only (`/simple`) | 8.8 KB | 7.9 KB |
+| Default targets, 20 common languages (`/common`) | 13.9 KB | 12.0 KB |
+| Default targets, every language (`/all`) | 18.1 KB | 15.2 KB |
+| Everything (`/full`, script tag) | 21.2 KB | 17.9 KB |
 
 The QR code encoder (1.8 KB) is only included with the `qr` or `wechat` targets.
 

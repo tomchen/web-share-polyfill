@@ -38,8 +38,8 @@
           web-share-polyfill
         </a>
         <nav class="nav" aria-label="Sections">
+          <a href="#playground" data-t="nav_play">Try it</a>
           <a href="#support" data-t="nav_support">Browsers</a>
-          <a href="#playground" data-t="nav_play">Playground</a>
           <a href="#usage" data-t="nav_usage">Usage</a>
           <a href="#options" data-t="nav_options">Options</a>
           <a href="#targets" data-t="nav_targets">Targets</a>
@@ -98,6 +98,8 @@
           <div class="actions">
             <button class="btn primary" id="share-page" type="button" data-t="hero_share">Share this page</button>
             <button class="btn" id="share-fallback" type="button" data-t="hero_polyfill" hidden>The polyfill's sheet</button>
+            <a class="btn" href="#playground" data-t="nav_play">Try it</a>
+            <a class="btn" href="#support" data-t="hero_support">Browser table</a>
           </div>
           <p class="note" id="hero-note" data-t="hero_note_polyfill"></p>
           <div class="install">
@@ -105,7 +107,6 @@
             <button class="copy" type="button" data-copy="install-cmd" data-t="copy">Copy</button>
           </div>
           <dl class="facts">
-            <div><dt id="fact-size">4.5 KB</dt><dd data-t="fact_core">core, gzipped</dd></div>
             <div><dt id="fact-targets">45</dt><dd data-t="fact_targets">share targets</dd></div>
             <div><dt id="fact-langs">70</dt><dd data-t="fact_langs">languages</dd></div>
           </dl>
@@ -116,41 +117,9 @@
         </div>
       </section>
 
-      <section id="support" class="section wrap">
-        <div class="section-head">
-          <h2 data-t="compat_title">Browser support</h2>
-          <p data-t="compat_lede"></p>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="compat-on" role="switch" />
-          <span class="switch-ui" aria-hidden="true"></span>
-          <span data-t="compat_toggle">With web-share-polyfill</span>
-        </label>
-        <div class="table-wrap compat-wrap"><table class="compat" id="compat"></table></div>
-        <ul class="compat-legend" id="compat-legend"></ul>
-        <ol class="compat-notes" id="compat-notes"></ol>
-        <p class="hint" id="compat-src"></p>
-        <h3 class="h3" id="beyond" data-t="beyond_title">Where the native API says no</h3>
-        <div class="table-wrap">
-          <table class="table beyond">
-            <thead>
-              <tr><th data-t="beyond_native">Native navigator.share()</th><th data-t="compat_poly">With the polyfill</th></tr>
-            </thead>
-            <tbody>
-              <tr><td data-th="beyond_1n"></td><td data-th="beyond_1p"></td></tr>
-              <tr><td data-th="beyond_2n"></td><td data-th="beyond_2p"></td></tr>
-              <tr><td data-th="beyond_3n"></td><td data-th="beyond_3p"></td></tr>
-              <tr><td data-th="beyond_4n"></td><td data-th="beyond_4p"></td></tr>
-              <tr><td data-th="beyond_5n"></td><td data-th="beyond_5p"></td></tr>
-              <tr><td data-th="beyond_6n"></td><td data-th="beyond_6p"></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
       <section id="playground" class="section wrap">
         <div class="section-head">
-          <h2 data-t="play_title">Playground</h2>
+          <h2 data-t="play_title">Try it</h2>
           <p data-t="play_lede"></p>
         </div>
         <div class="play">
@@ -164,14 +133,6 @@
                   <label><input type="radio" name="p-install" value="html" /><span data-t="install_html">HTML &lt;script&gt;</span></label>
                 </div>
               </div>
-              <div class="opt-row" id="p-codestyle-row">
-                <span class="opt-label" data-t="play_codestyle">Code</span>
-                <div class="seg" role="radiogroup">
-                  <label><input type="radio" name="p-codestyle" value="short" checked /><span data-t="code_short">Short</span></label>
-                  <label><input type="radio" name="p-codestyle" value="small" /><span data-t="code_small">Smallest</span></label>
-                </div>
-              </div>
-              <p class="hint" id="p-codestyle-hint"></p>
               <div class="opt-row">
                 <span class="opt-label" data-t="play_api">API</span>
                 <div class="seg" role="radiogroup">
@@ -183,12 +144,23 @@
             </fieldset>
 
             <fieldset>
+              <legend data-t="qp_title">Quick presets</legend>
+              <div class="seg" role="radiogroup" id="p-quick">
+                <label><input type="radio" name="p-quick" value="default" /><span data-t="qp_default">Common</span></label>
+                <label><input type="radio" name="p-quick" value="en" /><span data-t="qp_en">English only</span></label>
+                <label><input type="radio" name="p-quick" value="weea" /><span data-t="qp_weea">Western European + East Asian</span></label>
+                <label><input type="radio" name="p-quick" value="efc" /><span data-t="qp_efc">English + French + Chinese</span></label>
+                <label><input type="radio" name="p-quick" value="all" /><span data-t="qp_all">All</span></label>
+              </div>
+              <p class="hint" id="p-quick-hint"></p>
+            </fieldset>
+
+            <fieldset>
               <legend data-t="play_targets">Share targets</legend>
               <div class="seg" role="radiogroup" id="p-presets">
                 <label><input type="radio" name="p-preset" value="default" /><span data-t="preset_default">Default</span></label>
                 <label><input type="radio" name="p-preset" value="simple" /><span data-t="preset_simple">Simple</span></label>
                 <label><input type="radio" name="p-preset" value="minimal" /><span data-t="preset_minimal">Minimal</span></label>
-                <label><input type="radio" name="p-preset" value="eastasia" /><span data-t="preset_eastasia">East Asia</span></label>
               </div>
               <p class="hint" id="p-preset-hint"></p>
               <p class="hint" data-t="targets_hint"></p>
@@ -228,6 +200,7 @@
                   <button type="button" class="copy" data-preset="none" data-t="langs_none">None</button>
                   <span class="hint" id="p-lcount"></span>
                 </div>
+                <input class="langs-search" id="p-lsearch" type="search" />
                 <div class="lang-picks" id="p-langs"></div>
                 <label class="field">
                   <span data-t="play_fallback">Fallback</span>
@@ -237,7 +210,8 @@
               </div>
               <label class="field" id="p-lone" hidden>
                 <span data-t="play_one">Language</span>
-                <select id="p-one"></select>
+                <input id="p-one" type="text" list="p-one-list" />
+                <datalist id="p-one-list"></datalist>
               </label>
             </fieldset>
 
@@ -301,6 +275,14 @@
           </div>
 
           <div class="panel output">
+            <div id="p-plang-field">
+              <label class="field">
+                <span data-t="play_preview_lang">Preview language</span>
+                <input id="p-plang" type="text" list="p-plang-list" />
+                <datalist id="p-plang-list"></datalist>
+              </label>
+              <p class="hint" data-t="preview_hint"></p>
+            </div>
             <button class="btn primary big" id="p-open" type="button" data-t="play_open">Share</button>
             <div class="result">
               <span class="result-label" data-t="play_result">Result</span>
@@ -316,6 +298,38 @@
         </div>
       </section>
 
+      <section id="support" class="section wrap">
+        <div class="section-head">
+          <h2 data-t="compat_title">Browser support</h2>
+          <p data-t="compat_lede"></p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="compat-on" role="switch" />
+          <span class="switch-ui" aria-hidden="true"></span>
+          <span data-t="compat_toggle">With web-share-polyfill</span>
+        </label>
+        <div class="table-wrap compat-wrap"><table class="compat" id="compat"></table></div>
+        <ul class="compat-legend" id="compat-legend"></ul>
+        <ol class="compat-notes" id="compat-notes"></ol>
+        <p class="hint" id="compat-src"></p>
+        <h3 class="h3" id="beyond" data-t="beyond_title">Where the native API says no</h3>
+        <div class="table-wrap">
+          <table class="table beyond">
+            <thead>
+              <tr><th data-t="beyond_native">Native navigator.share()</th><th data-t="compat_poly">With the polyfill</th></tr>
+            </thead>
+            <tbody>
+              <tr><td data-th="beyond_1n"></td><td data-th="beyond_1p"></td></tr>
+              <tr><td data-th="beyond_2n"></td><td data-th="beyond_2p"></td></tr>
+              <tr><td data-th="beyond_3n"></td><td data-th="beyond_3p"></td></tr>
+              <tr><td data-th="beyond_4n"></td><td data-th="beyond_4p"></td></tr>
+              <tr><td data-th="beyond_5n"></td><td data-th="beyond_5p"></td></tr>
+              <tr><td data-th="beyond_6n"></td><td data-th="beyond_6p"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section id="usage" class="section wrap">
         <div class="section-head"><h2 data-t="usage_title">Usage</h2></div>
         <div class="usage">
@@ -328,7 +342,7 @@
           </div>
           <div class="usage-item">
             <p data-th="usage_auto_html"></p>
-            <pre class="code" data-code="js">import 'web-share-polyfill/auto'
+            <pre class="code" data-code="js">import 'web-share-polyfill/common'
 
 button.addEventListener('click', () => {
   navigator.share({ title: document.title, url: location.href }).catch(() => {})
@@ -408,6 +422,7 @@ const id = await share({ url: location.href }, { targets: [copy, qr, x] })
           <h2 data-t="langs_title">Languages</h2>
           <p data-t="langs_lede"></p>
         </div>
+        <input class="langs-search" id="langs-search" type="search" />
         <div class="langs" id="langs"></div>
       </section>
 
@@ -454,6 +469,7 @@ web-share-polyfill::part(target) { border-radius: 8px; }</pre>
     </main>
 
     <footer class="foot wrap">
+      <p>MIT License © <a href="https://github.com/tomchen/">Tom Chen</a></p>
       <p data-th="footer_html"></p>
       <p>
         <a href="https://github.com/tomchen/web-share-polyfill">GitHub</a> ·

@@ -126,6 +126,9 @@ describe('share', () => {
       ['zh-TW', 'line'],
       ['fr', 'x'],
       [undefined, 'x'], // the viewer is en-US
+      // Only the first language counts: English, then Chinese, is the '*' list, like the English UI
+      [['en-US', 'fr', 'zh-CN'], 'x'],
+      [['zh-CN', 'en-US'], 'weibo'],
     ] as const) {
       const p = share({ url: 'https://example.com' }, { lang, targets })
       expect(items().map((i) => i.dataset.id)).toEqual([id])
@@ -406,28 +409,66 @@ describe('language', () => {
   })
 })
 
-describe('auto', () => {
-  it('installs the default targets for each language, and only imports those', async () => {
+// Opens a sheet for each language, each closing with its animation
+describe('ready-made entries', { timeout: 20_000 }, () => {
+  /** Load an entry with no native share sheet. */
+  const entry = async (name: 'common' | 'all' | 'simple') => {
     vi.resetModules()
     for (const k of ['share', 'canShare']) {
       Object.defineProperty(navigator, k, { value: undefined, configurable: true, writable: true })
     }
-    await import('../src/auto.js')
+    return name == 'common'
+      ? await import('../src/common.js')
+      : name == 'all'
+        ? await import('../src/all.js')
+        : await import('../src/simple.js')
+  }
+  /** The sheet's label and target ids for a viewer language. */
+  const open = async (e: { share: (d: object, o: object) => Promise<string> }, lang: string) => {
+    const p = e.share({ url: 'https://example.com' }, { native: false, lang })
+    const seen = { label: dialog()!.getAttribute('aria-label'), ids: items().map((i) => i.dataset.id) }
+    ;(sheet()!.querySelector('.x') as HTMLElement).click()
+    await p.catch(() => {})
+    await flush()
+    return seen
+  }
+  // sms, more, kakaotalk and save hide themselves here: no touch screen, no native sheet, no Kakao SDK, no files
+  const shown = (ids: string[]) => ids.filter((id) => !['sms', 'more', 'kakaotalk', 'save'].includes(id)).sort()
+
+  it('/common: the default targets for each language, and the common languages', async () => {
+    const common = await entry('common')
     const { defaults } = await import('../src/defaults.js')
     for (const [lang, ids] of Object.entries(defaults)) {
-      Object.defineProperty(navigator, 'languages', { value: [lang == '*' ? 'en' : lang], configurable: true })
-      const p = navigator.share({ url: 'https://example.com' })
-      // sms, more, kakaotalk and save hide themselves here: no touch screen, no native sheet, no Kakao SDK,
-      // no files
-      const expected = ids.filter((id) => !['sms', 'more', 'kakaotalk', 'save'].includes(id))
-      expect(
-        items()
-          .map((i) => i.dataset.id)
-          .sort(),
-        lang,
-      ).toEqual(expected.sort())
-      ;(sheet()!.querySelector('.x') as HTMLElement).click()
-      await p.catch(() => {})
+      expect((await open(common, lang == '*' ? 'en' : lang)).ids.sort(), lang).toEqual(shown(ids))
+    }
+    // French is a common language, Persian isn't (its targets still apply, in English)
+    expect((await open(common, 'fr')).label).toBe('Partager')
+    expect((await open(common, 'fa')).label).toBe('Share')
+    // share() resolves with the id of the target used; navigator.share() is installed too
+    const p = common.share({ url: 'https://example.com' }, { native: false, lang: 'ja' })
+    click('line')
+    await expect(p).resolves.toBe('line')
+    await flush()
+    const q = navigator.share({ url: 'https://example.com' })
+    expect(items().length).toBeGreaterThan(0)
+    ;(sheet()!.querySelector('.x') as HTMLElement).click()
+    await q.catch(() => {})
+  })
+
+  it('/all: every language', async () => {
+    const all = await entry('all')
+    const seen = await open(all, 'fa')
+    expect(seen.label).toBe('هم‌رسانی')
+    expect(seen.ids).toContain('telegram')
+  })
+
+  it('/simple: one list for everyone, in English', async () => {
+    const simple = await entry('simple')
+    const { defaults } = await import('../src/defaults.js')
+    for (const lang of ['en', 'zh-CN', 'ja']) {
+      const seen = await open(simple, lang)
+      expect(seen.label, lang).toBe('Share')
+      expect(seen.ids.sort(), lang).toEqual(shown(defaults['*']))
     }
   })
 })

@@ -156,10 +156,13 @@ const input = (data?: ShareData | null): ShareInput => {
   }
 }
 
-/** The target list for the viewer's language (or `lang`). */
+/**
+ * The target list for the viewer's language (or `lang`): the first one only, since a viewer who prefers
+ * English, then Chinese, uses the apps of English speakers ('*'), not WeChat.
+ */
 const listFor = (o: Options = {}): ShareTarget[] => {
   const list = o.targets || []
-  return Array.isArray(list) ? list : list[match(list, languages(o.lang)) || '*'] || []
+  return Array.isArray(list) ? list : list[match(list, languages(o.lang).slice(0, 1)) || '*'] || []
 }
 
 /** Whether the sheet has a target for these files. */

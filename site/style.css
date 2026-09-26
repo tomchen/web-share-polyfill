@@ -225,10 +225,6 @@ input[type='url'] {
   font: inherit;
   font-size: 14px;
 }
-.lang-select {
-  width: auto;
-  padding: 5px 8px;
-}
 @media (max-width: 860px) {
   .nav {
     display: none;
@@ -734,16 +730,30 @@ pre.code {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 14px 6px 10px;
+  gap: 2px;
+  padding: 0 6px 8px;
   border: 1px solid transparent;
   border-radius: 14px;
-  background: transparent;
   color: var(--ink);
-  font: inherit;
   font-size: 13px;
   text-align: center;
+}
+.g-try,
+.lang-try {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
   cursor: pointer;
+}
+.g-try {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  align-self: stretch;
+  padding-top: 14px;
 }
 .g:hover {
   border-color: var(--line);
@@ -773,17 +783,20 @@ pre.code {
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 0 8px 0 0;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--surface);
   color: var(--ink);
-  font: inherit;
   font-size: 14px;
-  text-align: start;
-  cursor: pointer;
 }
-.lang:hover {
+.lang-try {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0 8px 12px;
+  text-align: start;
+}
+.lang:has(.lang-try:hover) {
   border-color: var(--accent);
 }
 .lang code {
@@ -1069,9 +1082,13 @@ input[type='color']:disabled {
   outline-offset: 1px;
 }
 .ltab-add {
-  width: auto;
-  padding: 4px 8px;
+  width: 150px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
   border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
   font-size: 13px;
 }
 
@@ -1345,4 +1362,82 @@ button.icon-link {
   font-size: 12px;
   font-style: italic;
   text-align: end;
+}
+
+/* Links that look like buttons (the hero) */
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+
+/* A faint line after the browsers with one column per OS (Chrome, Edge), across the cell spacing */
+.compat .end {
+  position: relative;
+}
+.compat .end::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  bottom: -2px;
+  border-right: 1px solid var(--line);
+}
+
+/* Click to copy */
+.cp {
+  position: relative;
+  padding: 1px 3px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: copy;
+}
+.cp:hover {
+  background: var(--accent-soft);
+}
+.cp[data-copied]::after {
+  content: attr(data-copied);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  z-index: 1;
+  margin-bottom: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--bg);
+  font: 600 11px var(--body);
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.code-wrap {
+  position: relative;
+}
+.code-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border-color: rgb(255 255 255 / 0.2);
+  background: var(--code-bg);
+  color: var(--code-ink);
+}
+
+/* Language search */
+.langs-search {
+  width: min(320px, 100%);
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+.lang[hidden],
+.pick[hidden] {
+  display: none;
 }

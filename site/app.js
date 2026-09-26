@@ -122,6 +122,50 @@ document.addEventListener('click', async (e) => {
   setTimeout(() => (btn.textContent = t('copy')), 1500)
 })
 
+/* Click to copy: option names, target ids, language codes */
+
+const copyText = async (text, el) => {
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch {
+    return
+  }
+  // A "Copied" bubble above the element
+  el.dataset.copied = t('copied')
+  clearTimeout(el.copiedTimer)
+  el.copiedTimer = setTimeout(() => delete el.dataset.copied, 1200)
+}
+/** A button that copies `text`, showing `content` (the text itself by default). */
+const copyButton = (text, content = text) => {
+  const b = h('button', 'cp')
+  b.type = 'button'
+  b.append(content)
+  b.dataset.text = text
+  b.onclick = () => copyText(text, b)
+  return b
+}
+/** Make the option names copyable (once), and label every copy button in the site language. */
+const renderCopyables = () => {
+  for (const code of $$('#options tbody td:first-child > code'))
+    code.replaceWith(copyButton(code.textContent, code.cloneNode(true)))
+  for (const b of $$('.cp')) {
+    b.title = t('copy')
+    b.setAttribute('aria-label', `${t('copy')}: ${b.dataset.text}`)
+  }
+}
+
+// A copy button on every code block of the page (the playground makes its own)
+$$('main pre.code').forEach((pre, i) => {
+  pre.id ||= 'code-' + i
+  const wrap = h('div', 'code-wrap')
+  pre.replaceWith(wrap)
+  const copy = h('button', 'copy code-copy', t('copy'))
+  copy.type = 'button'
+  copy.dataset.copy = pre.id
+  copy.dataset.t = 'copy'
+  wrap.append(pre, copy)
+})
+
 /* ------------------------------------------------------- Package managers */
 
 // Yarn is the one without `i`: `yarn install <pkg>` doesn't add a package
@@ -220,15 +264,14 @@ const ORDER = [
 
 const S = {
   install: 'npm',
-  code: 'short',
   api: 'polyfill',
   // Target lists by viewer language, '*' for everyone else, in tab order; and the one being edited
   targets: {},
   edit: '*',
   appId: '',
   lmode: 'viewer',
-  // Every language by default, like /auto
-  langs: new Set(Object.keys(LOCALES)),
+  // The common languages by default, like /common
+  langs: new Set(COMMON),
   fallback: 'en',
   one: 'en',
   look: '',
@@ -239,6 +282,8 @@ const S = {
   // UI text overrides by language, '*' for all of them; and the one being edited
   strings: { '*': {} },
   sedit: '*',
+  // The language to preview the sheet in, as a viewer of it would see it ('' for the browser's)
+  plang: '',
 }
 
 const radio = (name) => $(`input[name="${name}"]:checked`).value
@@ -266,8 +311,41 @@ const PRESETS = {
   default: defaultTargets,
   simple: () => pick(['*']),
   minimal: () => ({ '*': ['copy', 'save', 'qr', 'email', 'sms', 'more'] }),
-  eastasia: () => pick(['*', 'zh', 'zh-hant', 'ja', 'ko']),
 }
+/** Quick presets: languages and target lists together. `langs` are the locales besides English. */
+const QUICK = {
+  default: { langs: COMMON.filter((c) => c != 'en') },
+  en: { langs: [] },
+  // weea and efc are measured by scripts/build.mjs: keep their languages in sync there
+  weea: { langs: ['fr', 'de', 'it', 'es', 'pt', 'zh', 'zh-hant', 'ja', 'ko'] },
+  efc: { langs: ['fr', 'zh', 'zh-hant'] },
+  // Every language and the default targets
+  all: { langs: Object.keys(LOCALES).filter((c) => c != 'en') },
+}
+const quickLangs = (q) => new Set(['en', ...QUICK[q].langs])
+// The default lists of the preset's languages (just "All languages" for English only)
+const quickTargets = (q) =>
+  q == 'default' || q == 'all' ? defaultTargets() : pick(['*', ...QUICK[q].langs.filter((code) => W.defaults[code])])
+/** The ready-made entry (/common, /all, /simple) the settings are exactly, if any. */
+const readyEntry = () => {
+  if (ownOn() || S.lmode != 'viewer' || S.fallback != 'en' || S.look || S.theme || !S.native || stringSets().length)
+    return
+  const q = quick()
+  return { default: 'common', all: 'all', en: 'simple' }[q]
+}
+
+/** The quick preset the settings match, if any. */
+const quick = () =>
+  Object.keys(QUICK).find((q) => {
+    const langs = quickLangs(q)
+    return (
+      S.lmode == 'viewer' &&
+      langs.size == S.langs.size &&
+      [...langs].every((c) => S.langs.has(c)) &&
+      sorted(quickTargets(q)) == sorted(S.targets)
+    )
+  })
+
 /** The preset the lists match, if any. */
 const preset = () => Object.keys(PRESETS).find((k) => sorted(PRESETS[k]()) == sorted(S.targets))
 /** Every target used by any list. */
@@ -297,12 +375,20 @@ const sample = () => {
 
 /** Options for the live sheet (the full build, which takes ids). */
 const liveOptions = () => {
-  // The list being edited, in its language: the preview shows what is on screen
-  const targets = S.targets[S.edit].map((id) => (id == 'messenger' ? W.messenger(S.appId || '0') : id))
-  if (ownOn()) targets.push(own())
-  const o = { targets }
+  // The same setup as the code: every list, matched with the viewer's language
+  const resolve = (ids) => {
+    const list = ids.map((id) => (id == 'messenger' ? W.messenger(S.appId || '0') : id))
+    if (ownOn()) list.push(own())
+    return list
+  }
+  const lists = Object.entries(S.targets)
+  const o = {
+    targets:
+      lists.length == 1 ? resolve(lists[0][1]) : Object.fromEntries(lists.map(([code, ids]) => [code, resolve(ids)])),
+  }
   if (S.lmode == 'one') Object.assign(o, { lang: S.one, locales: [S.one] })
-  else Object.assign(o, { locales: [...S.langs], fallback: S.fallback }, S.edit != '*' && { lang: S.edit })
+  // Previewing as a viewer of another language (only here: in the code, each viewer's browser decides)
+  else Object.assign(o, { locales: [...S.langs], fallback: S.fallback }, S.plang && { lang: S.plang })
   if (S.look) o.look = S.look
   // The sheet follows the site's theme unless the playground sets one
   o.theme = S.theme || theme()
@@ -363,36 +449,47 @@ const langTabs = (box, sets, edit, pick, init) => {
     }
     return tab
   })
-  const add = h('select', 'lang-select ltab-add')
+  // Add a language: a text field with the languages to pick from, filtered as one types (by name or code)
+  const codes = sortedCodes().filter((code) => !(code in sets))
+  const list = h('datalist')
+  list.id = box.id + '-add'
+  list.append(...codes.map((code) => Object.assign(h('option'), { value: langOption(code) })))
+  const add = h('input', 'ltab-add')
+  Object.assign(add, { type: 'text', placeholder: '+ ' + t('targets_add') })
+  add.setAttribute('list', list.id)
   add.setAttribute('aria-label', t('targets_add'))
-  add.append(
-    Object.assign(h('option', '', '+ ' + t('targets_add')), { value: '' }),
-    ...sortedCodes()
-      .filter((code) => !(code in sets))
-      .map((code) => Object.assign(h('option', '', `${nativeName(code)} (${code})`), { value: code })),
-  )
   add.onchange = () => {
-    sets[add.value] = init()
-    choose(add.value)
+    const code = langFromField(add.value, codes)
+    if (!code) return
+    sets[code] = init(code)
+    choose(code)
   }
-  box.replaceChildren(...tabs, add)
+  box.replaceChildren(...tabs, add, list)
 }
 
 const renderTargets = () => {
   if (!S.targets[S.edit]) S.edit = '*'
   const nl = nameLang()
-  // A new language starts from the list everyone else gets
+  // A new language starts from its own defaults (WeChat… for Chinese), or from the list everyone else gets
   langTabs(
     $('#p-tlangs'),
     S.targets,
     S.edit,
     (code) => (S.edit = code),
-    () => [...S.targets['*']],
+    (code) => [...(W.defaults[code] || S.targets['*'])],
   )
   $('#p-presets').setAttribute('aria-label', t('preset_label'))
   const current = preset()
   for (const r of $$('input[name="p-preset"]')) r.checked = r.value == current
   $('#p-preset-hint').textContent = t(`preset_${current || 'custom'}_hint`)
+
+  $('#p-quick').setAttribute('aria-label', t('qp_title'))
+  const q = quick()
+  for (const r of $$('input[name="p-quick"]')) {
+    r.checked = r.value == q
+    r.parentElement.title = t(`qp_${r.value}_hint`)
+  }
+  $('#p-quick-hint').textContent = q ? t(`qp_${q}_hint`) : ''
 
   const ids = S.targets[S.edit]
   $('#p-selected').replaceChildren(
@@ -465,9 +562,13 @@ const renderLangPicks = () => {
       const name = h('span', '', nativeName(code))
       name.lang = htmlLang(code)
       l.append(box, name, h('code', '', code))
+      l.dataset.search = langSearchText(code)
       return l
     }),
   )
+  $('#p-lsearch').placeholder = t('langs_search')
+  $('#p-lsearch').setAttribute('aria-label', t('langs_search'))
+  filterPicks()
   $('#p-lcount').textContent = `${S.langs.size} / ${codes.length}`
   const fill = (select, list, value) => {
     select.replaceChildren(
@@ -484,8 +585,46 @@ const renderLangPicks = () => {
     codes.filter((c) => S.langs.has(c)),
     S.fallback,
   )
-  fill($('#p-one'), codes, S.one)
+  // One language: a text field with the languages to pick from, filtered as one types
+  $('#p-one-list').replaceChildren(...codes.map((code) => Object.assign(h('option'), { value: langOption(code) })))
+  if (document.activeElement != $('#p-one')) $('#p-one').value = langOption(S.one)
+  // Preview language: not for one language, which is fixed
+  $('#p-plang-field').hidden = S.lmode == 'one'
+  // Empty: the browser's languages
+  $('#p-plang-list').replaceChildren(...codes.map((code) => Object.assign(h('option'), { value: langOption(code) })))
+  if (document.activeElement != $('#p-plang')) $('#p-plang').value = S.plang ? langOption(S.plang) : ''
 }
+
+/** "日本語 (ja)": how the searchable language fields show a language. */
+const langOption = (code) => `${nativeName(code)} (${code})`
+/** The language a searchable field's text is ("日本語 (ja)", or just "ja"), if any. */
+const langFromField = (value, codes = sortedCodes()) => {
+  const v = value.trim().toLowerCase()
+  return codes.find((c) => langOption(c).toLowerCase() == v || c == v)
+}
+/** Everything a language can be searched by: its names (native, in the site language, in English) and code. */
+const langSearchText = (code) =>
+  [nativeName(code), displayName(code), displayName(code, 'en'), code].join(' ').toLowerCase()
+/** Show the language checkboxes that match the search. */
+const filterPicks = () => {
+  const q = $('#p-lsearch').value.trim().toLowerCase()
+  for (const l of $$('#p-langs .pick')) l.hidden = q && !l.dataset.search.includes(q)
+}
+$('#p-lsearch').addEventListener('input', filterPicks)
+$('#p-one').addEventListener('focus', (e) => e.target.select())
+$('#p-plang').addEventListener('focus', (e) => e.target.select())
+$('#p-plang').addEventListener('change', (e) => {
+  // Empty: the browser's languages; otherwise a language, if it is one
+  const v = e.target.value.trim()
+  S.plang = v ? langFromField(v) || S.plang : ''
+  e.target.value = S.plang ? langOption(S.plang) : ''
+})
+$('#p-one').addEventListener('change', (e) => {
+  const code = langFromField(e.target.value)
+  if (code) S.one = code
+  e.target.value = langOption(S.one)
+  renderPlayground()
+})
 
 /* ---- UI text overrides */
 
@@ -551,15 +690,16 @@ const importLine = (names, from) => {
   return `import {\n${rows.map((r) => '  ' + r.trim()).join('\n')}\n} from '${from}'`
 }
 
-/** What the code imports: 'auto', 'full', 'small' (tree-shaken) or 'script' (the script tag). */
+/** What the code imports: a ready-made entry ('common', 'all', 'simple'), 'small' (tree-shaken) or 'script'. */
 let entry = ''
 
 const genCode = () => {
   const npm = S.install == 'npm'
   const call = S.api == 'call'
   const lib = npm ? '' : 'WebSharePolyfill.' // script tag: everything is on window.WebSharePolyfill
-  // Short code takes target ids and locale codes from /full (or nothing at all from /auto), like the script tag
-  const treeShaken = npm && S.code == 'small'
+  // Settings that are exactly a ready-made entry: one line; otherwise, only what is picked
+  const ready = npm ? readyEntry() : undefined
+  const treeShaken = npm && !ready
   const ids = allIds()
   const msg = `${lib}messenger(${q(S.appId || 'YOUR_FACEBOOK_APP_ID')})`
   const o = ownOn() ? own() : null
@@ -612,9 +752,11 @@ const genCode = () => {
     const key = (code) => (/^[a-z]+$/.test(code) ? code : q(code))
     opts.push([`strings: {\n${sets.map(([code, o]) => `    ${key(code)}: ${set(o)},`).join('\n')}\n  }`])
   }
-  const optBlock = opts.length
-    ? `{\n${opts.map(([code, comment]) => `  ${code},${comment ? ' ' + comment : ''}`).join('\n')}\n}`
-    : ''
+  // A ready-made entry is these settings already: no options
+  const optBlock =
+    !ready && opts.length
+      ? `{\n${opts.map(([code, comment]) => `  ${code},${comment ? ' ' + comment : ''}`).join('\n')}\n}`
+      : ''
 
   const data = [
     `title: ${$('#p-title').value ? q($('#p-title').value) : 'document.title'}`,
@@ -654,7 +796,7 @@ const genCode = () => {
       '})',
     )
   } else {
-    // The script tag and /auto install the polyfill by themselves: call polyfill() only to configure it
+    // The script tag and the ready-made entries install the polyfill: call polyfill() only to configure it
     if (treeShaken || optBlock) body.push(`${lib}polyfill(${optBlock})`, '')
     body.push(`${button}.addEventListener('click', () => {`, `  navigator.share(${dataStr}).catch(() => {})`, '})')
   }
@@ -669,15 +811,10 @@ const genCode = () => {
       head = [`import { ${fn} } from 'web-share-polyfill'`]
       if (ids.length) head.push(importLine(ids, 'web-share-polyfill/targets'))
       if (localeImport) head.push(localeImport)
-    } else if (!call && !optBlock) {
-      // Everything is default: one line
-      entry = 'auto'
-      head = [`import 'web-share-polyfill/auto'`]
     } else {
-      entry = 'full'
-      head = [
-        `import { ${[fn, ...(ids.includes('messenger') ? ['messenger'] : [])].join(', ')} } from 'web-share-polyfill/full'`,
-      ]
+      // A ready-made entry installs the polyfill, and exports share() with the same defaults
+      entry = ready
+      head = [call ? `import { share } from 'web-share-polyfill/${ready}'` : `import 'web-share-polyfill/${ready}'`]
     }
     blocks.push(['Terminal', installCmd()])
     blocks.push(['JavaScript', [...head, '', ...body].join('\n')])
@@ -725,19 +862,16 @@ const renderCode = () => {
 
 /* ---- Size estimate */
 
-const renderSize = () => {
-  if (!sizes) return
-  const kb = (n) => (n / 1024).toFixed(1) + ' KB'
-  if (entry != 'small') {
-    const size = entry == 'auto' ? sizes.auto : sizes.full
-    $('#p-size').textContent = kb(size.gzip)
-    $('#p-size-note').textContent = t(
-      entry == 'script' ? 'size_html' : entry == 'auto' ? 'size_auto_note' : 'size_full_npm',
-    )
-    return
-  }
+/** The gzip size of the tree-shaken code, in bytes, and whether the build measured it (or it is estimated). */
+const smallestSize = () => {
   const P = sizes.parts
   const ids = allIds()
+  // Setups the build measured: no need to estimate them
+  const minimal = ['copy', 'save', 'qr', 'email', 'sms', 'more']
+  if (!ownOn() && langList().length == 1 && ids.length == minimal.length && minimal.every((id) => ids.includes(id)))
+    return [sizes.minimal.gzip, true]
+  const q = !ownOn() && quick()
+  if (q) return [(sizes.quick[q] || sizes[{ default: 'common', all: 'all', en: 'simple' }[q]]).gzip, true]
   let add = ids.reduce((a, id) => a + (P.targets[id] || 0), 0)
   if (ids.includes('qr') && ids.includes('wechat')) add -= P.qrShared
   if (ownOn()) add += 180
@@ -749,16 +883,24 @@ const renderSize = () => {
   const langs = langList().filter((c) => P.locales[c])
   const langScale = between(langs.length, 1, 1, Object.keys(P.locales).length, P.localeScale)
   add += langs.reduce((a, c) => a + P.locales[c], 0) * langScale
-  $('#p-size').textContent = '≈ ' + kb(sizes.core.gzip + add)
-  $('#p-size-note').textContent = t('size_npm_note')
+  return [sizes.core.gzip + add, false]
+}
+
+const renderSize = () => {
+  if (!sizes) return
+  const kb = (n) => (n / 1024).toFixed(1) + ' KB'
+  if (entry == 'small') {
+    const [bytes, measured] = smallestSize()
+    $('#p-size').textContent = (measured ? '' : '≈ ') + kb(bytes)
+    $('#p-size-note').textContent = t(measured ? 'size_measured_note' : 'size_npm_note')
+    return
+  }
+  $('#p-size').textContent = kb((entry == 'script' ? sizes.full : sizes[entry]).gzip)
+  $('#p-size-note').textContent = entry == 'script' ? t('size_html') : fmt(t('size_ready_note'), { name: entry })
 }
 
 const renderPlayground = () => {
   S.install = radio('p-install')
-  S.code = radio('p-codestyle')
-  $('#p-codestyle-row').hidden = S.install != 'npm'
-  $('#p-codestyle-hint').hidden = S.install != 'npm'
-  $('#p-codestyle-hint').textContent = t(S.code == 'small' ? 'code_small_hint' : 'code_short_hint')
   S.api = radio('p-api')
   S.lmode = radio('p-lmode')
   $('#p-api-hint').textContent = t(S.api == 'call' ? 'api_call_hint' : 'api_polyfill_hint')
@@ -786,7 +928,7 @@ $('#p-open').addEventListener('click', async () => {
 })
 
 // Wiring
-for (const name of ['p-install', 'p-codestyle', 'p-api', 'p-lmode']) {
+for (const name of ['p-install', 'p-api', 'p-lmode']) {
   for (const r of $$(`input[name="${name}"]`)) r.addEventListener('change', renderPlayground)
 }
 for (const [id, key] of [
@@ -794,7 +936,6 @@ for (const [id, key] of [
   ['p-theme', 'theme'],
   ['p-radius', 'radius'],
   ['p-fallback', 'fallback'],
-  ['p-one', 'one'],
 ]) {
   $('#' + id).addEventListener('change', (e) => {
     S[key] = e.target.value
@@ -829,6 +970,16 @@ for (const id of ['p-own-on', 'p-own-id', 'p-own-name', 'p-own-color', 'p-own-ic
 }
 // The test data decides which targets show up
 for (const id of ['p-title', 'p-text', 'p-url', 'p-files']) $('#' + id).addEventListener('input', renderPlayground)
+for (const r of $$('input[name="p-quick"]')) {
+  r.addEventListener('change', () => {
+    S.langs = quickLangs(r.value)
+    S.targets = quickTargets(r.value)
+    S.edit = '*'
+    S.fallback = 'en'
+    $('input[name="p-lmode"][value="viewer"]').checked = true
+    renderPlayground()
+  })
+}
 for (const b of $$('[data-preset]')) {
   b.addEventListener('click', () => {
     const p = b.dataset.preset
@@ -848,11 +999,16 @@ const renderGallery = () => {
     el.replaceChildren(
       ...ids.map((id) => {
         const target = W.targets[id]
-        const b = h('button', 'g')
+        // Try the target, or copy its id
+        const g = h('div', 'g')
+        const b = h('button', 'g-try')
         b.type = 'button'
-        b.append(tile(target), h('span', '', targetName(target)), h('span', 'id', id))
+        b.append(tile(target), h('span', '', targetName(target)))
         b.onclick = () => tryTarget(target)
-        return b
+        const idButton = copyButton(id)
+        idButton.classList.add('id')
+        g.append(b, idButton)
+        return g
       }),
     )
   const ids = Object.keys(W.targets)
@@ -884,17 +1040,29 @@ const renderDefaults = () => {
 
 const sortedCodes = () => Object.keys(LOCALES).sort((a, b) => nativeName(a).localeCompare(nativeName(b), 'en'))
 
+/** Show the languages whose name (native or in the site language) or code contain the search. */
+const filterLangs = () => {
+  const q = $('#langs-search').value.trim().toLowerCase()
+  for (const item of $$('#langs .lang')) item.hidden = q && !item.dataset.search.includes(q)
+}
+$('#langs-search').addEventListener('input', filterLangs)
+
 const renderLangs = () => {
+  $('#langs-search').placeholder = t('langs_search')
+  $('#langs-search').setAttribute('aria-label', t('langs_search'))
   const codes = sortedCodes()
   $('#langs').replaceChildren(
     ...codes.map((code) => {
-      const b = h('button', 'lang')
+      // Open the sheet in this language, or copy its code
+      const item = h('div', 'lang')
+      const b = h('button', 'lang-try', nativeName(code))
       b.type = 'button'
       b.lang = htmlLang(code)
-      b.append(h('span', '', nativeName(code)), h('code', '', code))
       b.title = displayName(code)
       b.onclick = () => W.share(sample(), { lang: code, native: false, theme: theme() }).catch(() => {})
-      return b
+      item.append(b, copyButton(code, h('code', '', code)))
+      item.dataset.search = langSearchText(code)
+      return item
     }),
   )
 }
@@ -908,12 +1076,14 @@ const renderSizes = async () => {
   }
   const kb = (n) => (n / 1024).toFixed(1) + ' KB'
   renderSize()
-  $('#fact-size').textContent = kb(sizes.core.gzip)
   $('#sizes-body').replaceChildren(
     ...[
       ['core', 'size_core'],
+      ['minimal', 'size_minimal'],
       ['typical', 'size_typical'],
-      ['auto', 'size_auto'],
+      ['simple', 'size_simple'],
+      ['common', 'size_common'],
+      ['all', 'size_all'],
       ['full', 'size_full'],
     ].map(([k, label]) => {
       const tr = h('tr')
@@ -1000,11 +1170,11 @@ const renderCompat = async () => {
   for (const [i, c] of columns.entries()) {
     if (c.os) {
       if (columns[i - 1]?.b != c.b) {
-        const e = th(names[c.b], 'br', 'colgroup')
+        const e = th(names[c.b], 'br end', 'colgroup')
         e.colSpan = columns.filter((d) => d.b == c.b).length
         rows[1].append(e)
       }
-      const e = th(OSES[c.os], 'os', 'col')
+      const e = th(OSES[c.os], c.os == 'linux' ? 'os end' : 'os', 'col')
       if (c.os == 'linux' && noLinux.includes(c.b)) e.append(h('sup', '', note(linuxNote)))
       rows[2].append(e)
     } else {
@@ -1039,7 +1209,10 @@ const renderCompat = async () => {
           : files
             ? { kind: 'polyf', text: t('compat_save') }
             : { kind: 'poly', text: sheet[c.b] }
-      tr.append(compatCell(front, back, i++))
+      const td = compatCell(front, back, i++)
+      // A line after each browser that has one column per OS
+      if (c.os == 'linux') td.classList.add('end')
+      tr.append(td)
     }
     body.append(tr)
   }
@@ -1123,6 +1296,8 @@ const applyLanguage = () => {
   renderGallery()
   renderDefaults()
   renderLangs()
+  filterLangs()
+  renderCopyables()
   renderSizes()
   renderCompat()
   renderPlayground()

@@ -1,10 +1,7 @@
-/**
- * Side-effect entry: installs `navigator.share()` with the default targets for each viewer language and
- * every locale. Unlike `/full`, it bundles only the default targets, since it takes no options.
- */
-import { polyfill, type ShareTarget } from './index.js'
-import * as L from './locales.js'
+// The default target lists (from defaults.ts) as objects, for /common and /all: they import only these
+// targets, not all of them like /full.
 import { defaults } from './defaults.js'
+import type { ShareTarget } from './index.js'
 import {
   band,
   copy,
@@ -23,6 +20,7 @@ import {
   reddit,
   save,
   sms,
+  snapchat,
   telegram,
   threads,
   viber,
@@ -52,6 +50,7 @@ const T: Record<string, ShareTarget> = {
   reddit,
   save,
   sms,
+  snapchat,
   telegram,
   threads,
   viber,
@@ -63,7 +62,7 @@ const T: Record<string, ShareTarget> = {
   xing,
 }
 
-polyfill({
-  targets: Object.fromEntries(Object.entries(defaults).map(([lang, ids]) => [lang, ids.map((id) => T[id])])),
-  locales: Object.values(L),
-})
+/** Default targets by viewer language, `'*'` for the others. */
+export const lists: Record<string, ShareTarget[]> = Object.fromEntries(
+  Object.entries(defaults).map(([lang, ids]) => [lang, ids.map((id) => T[id])]),
+)

@@ -61,12 +61,18 @@ describe('dist', () => {
 // Size budgets (gzip bytes, from dist/sizes.json). A failure means the library grew:
 // raise a budget only on purpose, and update the sizes in the README with it.
 describe('size', () => {
-  const sizes = JSON.parse(sizesJson) as Record<'core' | 'typical' | 'auto' | 'full', { gzip: number }>
+  const sizes = JSON.parse(sizesJson) as Record<
+    'core' | 'minimal' | 'typical' | 'simple' | 'common' | 'all' | 'full',
+    { gzip: number }
+  >
   it.each([
-    ['core', 4600],
-    ['typical', 8400],
-    ['auto', 18500],
-    ['full', 22200],
+    ['core', 4900],
+    ['minimal', 7800],
+    ['typical', 8600],
+    ['simple', 9500],
+    ['common', 15000],
+    ['all', 19500],
+    ['full', 22900],
   ] as const)('%s stays under %i bytes gzipped', (name, budget) => {
     expect(sizes[name].gzip).toBeLessThanOrEqual(budget)
   })

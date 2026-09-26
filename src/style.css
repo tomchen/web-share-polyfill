@@ -25,6 +25,9 @@ dialog {
   --l: var(--wsp-line, var(--L));
   --a: var(--wsp-accent, var(--A));
   --r: var(--wsp-radius, var(--R));
+  /* Custom properties inherit into the shadow root: keep the page's --c/--g out (set per target) */
+  --c: initial;
+  --g: initial;
   color-scheme: light dark;
   box-sizing: border-box;
   width: min(460px, 100% - 32px);

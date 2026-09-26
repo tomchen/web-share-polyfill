@@ -6,7 +6,21 @@ import { readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { brotliCompressSync, gzipSync } from 'node:zlib'
 import { minify } from 'terser'
 
-const ENTRIES = ['index', 'targets', 'locales', 'defaults', 'qr', 'icons', 'style', 'full', 'auto']
+const ENTRIES = [
+  'index',
+  'targets',
+  'locales',
+  'defaults',
+  'lists',
+  'preset',
+  'qr',
+  'icons',
+  'style',
+  'full',
+  'common',
+  'all',
+  'simple',
+]
 const TARGET = ['chrome100', 'firefox100', 'safari15']
 // Keep non-ASCII text (the translations) as UTF-8 instead of \u escapes: much smaller before compression.
 // Module scripts are always UTF-8, and CDNs serve the script-tag file as UTF-8.
@@ -61,11 +75,18 @@ execSync('bunx tsc -p tsconfig.build.json', { stdio: 'inherit' })
 // 5. Sizes of typical bundles (minified + tree-shaken by esbuild)
 const scenarios = {
   core: `import { polyfill } from './dist/index.js'; polyfill()`,
+  // The smallest useful setup: the Minimal preset, actions only, in English
+  minimal: `import { polyfill } from './dist/index.js'
+    import { copy, save, qr, email, sms, more } from './dist/targets.js'
+    polyfill({ targets: [copy, save, qr, email, sms, more] })`,
   typical: `import { polyfill } from './dist/index.js'
     import { copy, qr, email, whatsapp, facebook, x, telegram, linkedin } from './dist/targets.js'
     polyfill({ targets: [copy, qr, email, whatsapp, facebook, x, telegram, linkedin] })`,
-  // /auto: the default targets and every language; /full (and the script tag): every target too
-  auto: `import './dist/auto.js'`,
+  // The ready-made entries: default targets with the common languages or all of them; one list, English
+  common: `import './dist/common.js'`,
+  all: `import './dist/all.js'`,
+  simple: `import './dist/simple.js'`,
+  // /full (and the script tag): every target too
   full: `import { polyfill } from './dist/full.js'; polyfill()`,
 }
 const measure = async (contents) => {
@@ -123,6 +144,29 @@ const allLocales =
   sizes.core.gzip
 parts.localeScale = +(allLocales / Object.values(parts.locales).reduce((a, b) => a + b, 0)).toFixed(3)
 sizes.parts = parts
+
+// The playground's quick presets that are not ready-made entries, measured like the code it shows for them:
+// the default lists of their languages, and their locales (keep in sync with QUICK in site/app.js)
+const { defaults } = await import(new URL('../dist/defaults.js', import.meta.url))
+const exportName = (code) => code.replace(/-(\w)/, (_, c) => c.toUpperCase())
+const quickPreset = (langs) => {
+  const lists = Object.fromEntries(['*', ...langs.filter((l) => defaults[l])].map((l) => [l, defaults[l]]))
+  const ids = [...new Set(Object.values(lists).flat())]
+  const names = langs.map(exportName)
+  return `import { polyfill } from './dist/index.js'
+    import { ${ids.join(', ')} } from './dist/targets.js'
+    import { ${names.join(', ')} } from './dist/locales.js'
+    polyfill({
+      targets: { ${Object.entries(lists)
+        .map(([l, v]) => `'${l}': [${v.join(', ')}]`)
+        .join(', ')} },
+      locales: [${names.join(', ')}],
+    })`
+}
+sizes.quick = {
+  weea: await measure(quickPreset(['fr', 'de', 'it', 'es', 'pt', 'zh', 'zh-hant', 'ja', 'ko'])),
+  efc: await measure(quickPreset(['fr', 'zh', 'zh-hant'])),
+}
 
 writeFileSync('dist/sizes.json', JSON.stringify(sizes, null, 2) + '\n')
 console.log(
