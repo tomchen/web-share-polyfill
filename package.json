@@ -1,6 +1,6 @@
 {
   "name": "web-share-polyfill",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Web Share API polyfill: navigator.share() everywhere, with a tiny native-looking share sheet (copy link, QR code, email and 40+ apps) in 70 languages.",
   "keywords": [
     "web share",
