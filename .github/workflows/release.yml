@@ -44,8 +44,15 @@ jobs:
           key: ${{ runner.os }}-bun-1.4.2-${{ hashFiles('bun.lock') }}
       - run: bun install --frozen-lockfile
       - run: bun run build
+      # Skipped when the version is already on npm: the first one is published from a machine (trusted
+      # publishing needs the package to exist), and a rerun shouldn't fail
       - name: Publish to npm
-        run: npm publish --provenance --access public --tag ${{ contains(github.ref_name, '-') && 'next' || 'latest' }}
+        run: |
+          if npm view "web-share-polyfill@${GITHUB_REF_NAME#v}" version > /dev/null 2>&1; then
+            echo "web-share-polyfill@${GITHUB_REF_NAME#v} is already on npm"
+          else
+            npm publish --provenance --access public --tag ${{ contains(github.ref_name, '-') && 'next' || 'latest' }}
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: GitHub release
