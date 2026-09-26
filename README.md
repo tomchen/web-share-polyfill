@@ -15,7 +15,7 @@
 
 - **Native first.** The browser's share sheet is always preferred. When it refuses a share, the fallback sheet opens instead: [the polyfill works where the native API says no](#beyond-the-native-api).
 - **Looks native.** iOS style on Apple devices, Android/Chrome style elsewhere. Bottom sheet on phones, dialog on desktop, dark mode, right-to-left languages.
-- **Small and tree-shakable.** The core is ~4.5 KB gzipped. Each target and each language is a separate export, so you only ship what you use.
+- **Small and tree-shakable.** The core is 4.5 KB gzipped, about 8 KB with a handful of targets. Each target and each language is a separate export, so you only ship what you use.
 - **70 languages**, chosen from the viewer's browser language. **Default targets depend on the language too**: WeChat, Weibo and QQ for Chinese, LINE for Japanese and Traditional Chinese, KakaoTalk and BAND for Korean, VK and Telegram for Russian, and so on.
 - **Isolated.** The sheet lives in a shadow root under a `<web-share-polyfill>` element, so its ids, classes and styles can't collide with your page's. No inline styles or HTML strings, so it works under a strict Content Security Policy and Trusted Types.
 - **Spec behavior.** `navigator.share()` resolves when something was shared and rejects with an `AbortError` when the sheet is dismissed. `navigator.canShare()` is polyfilled too. Apps open as real links (`<a target="_blank">`), so popup blockers don't get in the way.
@@ -119,7 +119,7 @@ With the script tag, the same API is on `window.WebSharePolyfill`:
 </script>
 ```
 
-The [playground](https://tomchen.github.io/web-share-polyfill/#playground) builds any of these setups for you (npm or script tag, targets, languages, fallback, look, text) and gives you the code to paste.
+[Try it](https://tomchen.github.io/web-share-polyfill/#playground) on the site: it builds any of these setups for you (npm or script tag, targets, languages, fallback, look, text) and gives you the code to paste.
 
 ## Options
 
@@ -312,7 +312,7 @@ Releases are published to npm by GitHub Actions when a `v*` tag is pushed. [vbt]
 bun run release patch   # or minor, major, 1.2.3
 ```
 
-It runs `bun run check` first. The tag then triggers [the release workflow](.github/workflows/release.yml), which runs CI again on the tagged commit and publishes only if it passes; see that file for the npm setup.
+It runs `bun run check` first. The tag then triggers [the release workflow](.github/workflows/release.yml), which runs CI again on the tagged commit and, only if it passes, publishes to npm with provenance through trusted publishing (no token).
 
 ## Credits
 

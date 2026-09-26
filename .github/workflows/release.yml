@@ -2,12 +2,8 @@
 # after the full CI (ci.yml) passes on the tagged commit.
 # Bun installs and builds; npm publishes, for provenance and trusted publishing.
 #
-# npm authentication, either:
-#   A. Trusted publishing (recommended, no secret): on npmjs.com, package settings → Trusted publisher →
-#      GitHub Actions, repository tomchen/web-share-polyfill, workflow release.yml.
-#      A package must exist before it can be configured, so do the very first publish with option B
-#      (or `npm publish` from your machine), then switch.
-#   B. A granular access token with publish rights, saved as the NPM_TOKEN repository secret.
+# npm authentication: trusted publishing (npmjs.com, package settings → Trusted publisher → GitHub Actions,
+# repository tomchen/web-share-polyfill, workflow release.yml), so no token is needed.
 name: Release
 
 on:
@@ -44,8 +40,7 @@ jobs:
           key: ${{ runner.os }}-bun-1.4.2-${{ hashFiles('bun.lock') }}
       - run: bun install --frozen-lockfile
       - run: bun run build
-      # Skipped when the version is already on npm: the first one is published from a machine (trusted
-      # publishing needs the package to exist), and a rerun shouldn't fail
+      # Skipped when the version is already on npm, so that a rerun doesn't fail
       - name: Publish to npm
         run: |
           if npm view "web-share-polyfill@${GITHUB_REF_NAME#v}" version > /dev/null 2>&1; then
@@ -53,8 +48,6 @@ jobs:
           else
             npm publish --provenance --access public --tag ${{ contains(github.ref_name, '-') && 'next' || 'latest' }}
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: GitHub release
         run: gh release create "$GITHUB_REF_NAME" --generate-notes ${{ contains(github.ref_name, '-') && '--prerelease' || '' }}
         env:
