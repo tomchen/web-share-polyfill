@@ -30,7 +30,7 @@ Or with a script tag, which installs the polyfill with every target and language
 
 <!-- vbt-version +2 -->
 ```html
-<script src="https://cdn.jsdelivr.net/npm/web-share-polyfill@0.1.1/dist/web-share-polyfill.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/web-share-polyfill@0.2.0/dist/web-share-polyfill.js"></script>
 ```
 
 For browsers without a modal `<dialog>` or Shadow DOM (Safari before 15.4, Firefox before 98), add `import 'web-share-polyfill/legacy'` too: see [browser support](#browser-support).
