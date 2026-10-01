@@ -58,6 +58,10 @@
       "types": "./dist/qr.d.ts",
       "default": "./dist/qr.js"
     },
+    "./legacy": {
+      "types": "./dist/legacy.d.ts",
+      "default": "./dist/legacy.js"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
@@ -66,6 +70,8 @@
   "unpkg": "./dist/web-share-polyfill.js",
   "jsdelivr": "./dist/web-share-polyfill.js",
   "sideEffects": [
+    "./dist/legacy.js",
+    "./src/legacy.ts",
     "./dist/common.js",
     "./dist/all.js",
     "./dist/simple.js",

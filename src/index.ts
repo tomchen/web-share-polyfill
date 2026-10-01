@@ -2,7 +2,8 @@
  * web-share-polyfill: the Web Share API everywhere.
  *
  * Uses the browser's own share sheet when there is one, and a small, native-looking
- * share sheet (rendered in a shadow root) when there isn't.
+ * share sheet (rendered in a shadow root) when there isn't. `web-share-polyfill/legacy` adds fallbacks for
+ * browsers without Shadow DOM or `<dialog>`.
  */
 import CSS from './style.js'
 
@@ -219,7 +220,50 @@ const onColor = (color: string): string => {
   return (n >> 16) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 186 ? '#000' : '#fff'
 }
 
+/** Where the sheet is built and how it is shown. */
+export interface Surface {
+  /** The `<web-share-polyfill>` element put in the page. */
+  host: HTMLElement
+  /** Where the sheet's `<dialog>` goes. */
+  root: ParentNode
+  /** Put the host in the page and show `dlg` as a modal with `focus` focused. `cancel` dismisses the sheet. */
+  open(dlg: HTMLDialogElement, focus: HTMLElement, cancel: () => void): void
+  /** Close `dlg`, firing its `close` event. */
+  close(dlg: HTMLDialogElement): void
+  /** Take the host out of the page. */
+  remove(): void
+}
+
 let sheet: CSSStyleSheet | undefined
+
+/**
+ * @internal The default surface: a shadow root and a modal `<dialog>`. `web-share-polyfill/legacy` replaces
+ * it with one that also works without them.
+ */
+export const hooks = {
+  surface(css: string, _title: string): Surface {
+    const host = D.createElement('web-share-polyfill')
+    const root = host.attachShadow({ mode: 'open' })
+    try {
+      if (!sheet) (sheet = new CSSStyleSheet()).replaceSync(css)
+      root.adoptedStyleSheets = [sheet]
+    } catch {
+      el('style', '', root, css)
+    }
+    return {
+      host,
+      root,
+      open(dlg, focus) {
+        ;(D.body || D.documentElement).appendChild(host)
+        dlg.showModal()
+        focus.focus()
+      },
+      close: (dlg) => dlg.close(),
+      remove: () => host.remove(),
+    }
+  },
+}
+
 let busy = 0
 
 /** Show the share sheet. Resolves with the id of the chosen target, rejects with an AbortError when dismissed. */
@@ -244,17 +288,12 @@ const showSheet = (d: ShareInput, o: Options = {}, noMore?: 1): Promise<string> 
   const apple = /mac|iphone|ipad|ipod/i.test((nav as any).userAgentData?.platform || nav.platform || '')
   const look = o.look ?? (apple ? 'apple' : 'material')
 
-  // Shadow host
-  const host = D.createElement('web-share-polyfill')
-  const root = host.attachShadow({ mode: 'open' })
-  try {
-    if (!sheet) (sheet = new CSSStyleSheet()).replaceSync(CSS)
-    root.adoptedStyleSheets = [sheet]
-  } catch {
-    el('style', '', root, CSS)
-  }
-
-  const dlg = el('dialog', (look == 'apple' ? 'a' : 'm') + (o.theme ? (o.theme == 'dark' ? ' dk' : ' lt') : ''), root)
+  const view = hooks.surface(CSS, t.share)
+  const dlg = el(
+    'dialog',
+    (look == 'apple' ? 'a' : 'm') + (o.theme ? (o.theme == 'dark' ? ' dk' : ' lt') : ''),
+    view.root,
+  )
   attrs(dlg, {
     part: 'sheet',
     'aria-label': t.share,
@@ -307,7 +346,7 @@ const showSheet = (d: ShareInput, o: Options = {}, noMore?: 1): Promise<string> 
   const label = (g: ShareTarget) => (typeof g.name == 'function' ? g.name(d, t) : (g.names && g.names[code]) || g.name)
 
   const render = () => {
-    body.replaceChildren()
+    body.textContent = ''
     const apps = el('div', 'p', body)
     const acts = el('div', 'q', body)
     targets.forEach((g, i) => {
@@ -336,7 +375,7 @@ const showSheet = (d: ShareInput, o: Options = {}, noMore?: 1): Promise<string> 
   const close = () => {
     if (!closing++) {
       dlg.classList.add('z')
-      setTimeout(() => dlg.close(), 150)
+      setTimeout(() => view.close(dlg), 150)
     }
   }
 
@@ -346,17 +385,27 @@ const showSheet = (d: ShareInput, o: Options = {}, noMore?: 1): Promise<string> 
       e.preventDefault()
       close()
     })
-    dlg.addEventListener('close', () => {
+    const done = () => {
+      closing = 1
       if (image) URL.revokeObjectURL(favicon)
-      host.remove()
+      view.remove()
       busy = 0
+    }
+    dlg.addEventListener('close', () => {
+      done()
       result ? resolve(result) : reject(new DOMException('Share canceled', 'AbortError'))
     })
     dlg.addEventListener('click', (e) => {
+      // Nothing more once closing (the sheet fades out for a moment)
+      if (closing) return
       const target = e.target as Element
       // A click on the dialog box itself is a click on the backdrop
       if (target == dlg || target.closest('.x')) return close()
-      if (target.closest('.k')) return render()
+      if (target.closest('.k')) {
+        render()
+        wrap.focus()
+        return
+      }
       const it = target.closest('[data-i]') as HTMLElement | null
       if (!it) return
       const g = targets[+it.dataset.i!]
@@ -372,7 +421,8 @@ const showSheet = (d: ShareInput, o: Options = {}, noMore?: 1): Promise<string> 
           ok: (v) => (result = v ?? g.id),
           close,
           view(title, content) {
-            body.replaceChildren()
+            if (closing) return
+            body.textContent = ''
             const v = el('div', 'v', body)
             const bar = el('div', 'vh', v)
             const back = el('button', 'k', bar)
@@ -386,10 +436,14 @@ const showSheet = (d: ShareInput, o: Options = {}, noMore?: 1): Promise<string> 
       }
     })
 
-    ;(D.body || D.documentElement).appendChild(host)
-    dlg.showModal()
-    // Focus the sheet itself, like native sheets, rather than its first button
-    wrap.focus()
+    try {
+      // Focus the sheet itself, like native sheets, rather than its first button
+      view.open(dlg, wrap, close)
+    } catch (e) {
+      // E.g. no <dialog> support without web-share-polyfill/legacy: don't stay busy
+      done()
+      reject(e)
+    }
   })
 }
 

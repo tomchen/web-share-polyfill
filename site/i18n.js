@@ -51,6 +51,8 @@ export const T = {
       'Tested in real browsers on {date} ({browsers}); the other data is from MDN’s browser-compat-data {version}. With the polyfill, the version shown is the oldest one that can display its sheet.',
     compat_linux:
       '{browsers}: no navigator.share() on Linux in our tests with real browsers, although MDN lists them as supported.',
+    compat_legacy:
+      'With web-share-polyfill/legacy, which the script tag includes. Without it, the sheet needs <dialog> and Shadow DOM: {browsers}.',
     beyond_title: 'Where the native API says no',
     beyond_native: 'Native navigator.share()',
     beyond_1n: 'HTTPS pages only',
@@ -79,6 +81,7 @@ export const T = {
     theme_light: 'Light',
     theme_dark: 'Dark',
     play_native: "Use the browser's own share sheet when it has one",
+    play_legacy: 'Older browsers too (Safari before 15.4, Firefox before 98)',
     play_targets: 'Share targets',
     qp_title: 'Quick presets',
     qp_default: 'Common',
@@ -138,8 +141,10 @@ export const T = {
       '<strong>Pick targets and languages (recommended).</strong> Everything you don’t import is tree-shaken.',
     usage_direct_html:
       '<strong>Call it directly.</strong> <code>share()</code> resolves with the id of the target used, handy for analytics.',
+    usage_legacy_html:
+      '<strong>Older browsers.</strong> Safari before 15.4 and Firefox before 98 have no modal <code>&lt;dialog&gt;</code>, and Firefox before 63 no Shadow DOM. One more line, anywhere, and the sheet opens in them too:',
     usage_script_html:
-      '<strong>Script tag.</strong> Everything included; the API is on <code>window.WebSharePolyfill</code>.',
+      '<strong>Script tag.</strong> Everything included, older browsers too; the API is on <code>window.WebSharePolyfill</code>.',
     options_title: 'Options',
     opt_name: 'Option',
     opt_default: 'Default',
@@ -168,6 +173,8 @@ export const T = {
     style_title: 'Styling',
     style_lede_html:
       'The sheet lives in a shadow root under a <code>&lt;web-share-polyfill&gt;</code> element: page CSS can’t reach it, and its ids and classes can’t clash with yours. It uses no inline styles or HTML strings, so it works under a strict Content Security Policy. Adjust it with custom properties and parts:',
+    style_legacy_html:
+      'In browsers without Shadow DOM (with <code>/legacy</code>), the sheet is in an iframe instead: the custom properties are copied into it when it opens, and <code>::part()</code> doesn’t reach it.',
     how_title: 'How it decides',
     how_1_html:
       'If <code>navigator.share</code> exists and accepts the data, the native sheet opens. If it refuses it with <code>NotAllowedError</code> or <code>TypeError</code> (see <a href="#beyond">where the native API says no</a>), the polyfill sheet opens instead. Other errors, including <code>AbortError</code> when the person cancels, are passed on.',
@@ -183,7 +190,9 @@ export const T = {
     size_simple: 'One target list, English only (simple)',
     size_common: 'Default targets, 20 common languages (common)',
     size_all: 'Default targets, every language (all)',
-    size_full: 'Everything (full, script tag)',
+    size_full: 'Everything (full)',
+    size_legacy: 'Core + older browsers (legacy)',
+    size_script: 'Everything with legacy (script tag)',
     footer_html:
       'Brand icons from <a href="https://simpleicons.org/">Simple Icons</a> (CC0); brand names and logos are trademarks of their owners.',
     play_setup: 'Setup',
@@ -262,6 +271,8 @@ export const T = {
     compat_source:
       '{date} 在真实浏览器中实测（{browsers}）；其余数据来自 MDN browser-compat-data {version}。加上 polyfill 后显示的版本号，是能显示其分享面板的最低版本。',
     compat_linux: '{browsers}：在 Linux 上没有 navigator.share()（真实浏览器实测），尽管 MDN 标为支持。',
+    compat_legacy:
+      '需加上 web-share-polyfill/legacy（script 标签版已包含）。不加时，面板需要 <dialog> 和 Shadow DOM：{browsers}。',
     beyond_title: '原生 API 不行的地方',
     beyond_native: '原生 navigator.share()',
     beyond_1n: '只能在 HTTPS 页面使用',
@@ -289,6 +300,7 @@ export const T = {
     theme_light: '浅色',
     theme_dark: '深色',
     play_native: '浏览器自带分享面板时，优先用它',
+    play_legacy: '也支持旧浏览器（Safari 15.4、Firefox 98 之前）',
     play_targets: '分享目标',
     qp_title: '快速预设',
     qp_default: '常用',
@@ -341,7 +353,10 @@ export const T = {
       '<strong>现成的，一行搞定。</strong><code>/common</code> 安装 <code>navigator.share()</code> 与 <code>navigator.canShare()</code>，目标按访问者的语言用默认设置，带 20 种常用语言；<code>/all</code> 带全部 70 种语言；<code>/simple</code> 只有一个目标列表和英文。每个都还导出 <code>share()</code>。',
     usage_pick_html: '<strong>自选目标和语言（推荐）。</strong>没有导入的部分都会被 tree-shake 掉。',
     usage_direct_html: '<strong>直接调用。</strong><code>share()</code> 返回所用目标的 id，方便统计。',
-    usage_script_html: '<strong>script 标签。</strong>包含全部内容，API 在 <code>window.WebSharePolyfill</code> 上。',
+    usage_legacy_html:
+      '<strong>旧浏览器。</strong>Safari 15.4 之前和 Firefox 98 之前没有模态 <code>&lt;dialog&gt;</code>，Firefox 63 之前没有 Shadow DOM。在任意位置再加一行，面板在这些浏览器里也能打开：',
+    usage_script_html:
+      '<strong>script 标签。</strong>包含全部内容，也支持旧浏览器，API 在 <code>window.WebSharePolyfill</code> 上。',
     options_title: '选项',
     opt_name: '选项',
     opt_default: '默认值',
@@ -368,6 +383,8 @@ export const T = {
     style_title: '样式',
     style_lede_html:
       '面板位于 <code>&lt;web-share-polyfill&gt;</code> 元素的 shadow root 中：页面的 CSS 影响不到它，它的 id 和 class 也不会与页面冲突。它不使用内联样式和 HTML 字符串，在严格的内容安全策略（CSP）下也能工作。可以用自定义属性和 part 调整样式：',
+    style_legacy_html:
+      '在没有 Shadow DOM 的浏览器里（加了 <code>/legacy</code> 时），面板改放在 iframe 中：自定义属性在面板打开时复制进去，<code>::part()</code> 则不起作用。',
     how_title: '判断逻辑',
     how_1_html:
       '存在 <code>navigator.share</code> 且它接受这份数据时，打开原生面板。如果它以 <code>NotAllowedError</code> 或 <code>TypeError</code> 拒绝（见<a href="#beyond">原生 API 不行的地方</a>），改为打开 polyfill 面板。其他错误，包括用户取消时的 <code>AbortError</code>，都原样抛出。',
@@ -382,7 +399,9 @@ export const T = {
     size_simple: '一个目标列表，仅英文（simple）',
     size_common: '默认目标，20 种常用语言（common）',
     size_all: '默认目标，全部语言（all）',
-    size_full: '全部（full、script 标签）',
+    size_full: '全部（full）',
+    size_legacy: '核心 + 旧浏览器支持（legacy）',
+    size_script: '全部加 legacy（script 标签）',
     footer_html:
       '品牌图标来自 <a href="https://simpleicons.org/">Simple Icons</a>（CC0）；品牌名称和标志是其所有者的商标。',
     play_setup: '接入方式',
@@ -460,6 +479,8 @@ export const T = {
     compat_source:
       '{date} 在真實瀏覽器中實測（{browsers}）；其餘資料來自 MDN browser-compat-data {version}。加上 polyfill 後顯示的版本號，是能顯示其分享面板的最低版本。',
     compat_linux: '{browsers}：在 Linux 上沒有 navigator.share()（真實瀏覽器實測），儘管 MDN 標示為支援。',
+    compat_legacy:
+      '需加上 web-share-polyfill/legacy（script 標籤版已包含）。不加時，面板需要 <dialog> 和 Shadow DOM：{browsers}。',
     beyond_title: '原生 API 不行的地方',
     beyond_native: '原生 navigator.share()',
     beyond_1n: '只能在 HTTPS 頁面使用',
@@ -487,6 +508,7 @@ export const T = {
     theme_light: '淺色',
     theme_dark: '深色',
     play_native: '瀏覽器內建分享面板時，優先使用它',
+    play_legacy: '也支援舊瀏覽器（Safari 15.4、Firefox 98 之前）',
     play_targets: '分享目標',
     qp_title: '快速預設',
     qp_default: '常用',
@@ -540,7 +562,10 @@ export const T = {
       '<strong>現成的，一行搞定。</strong><code>/common</code> 安裝 <code>navigator.share()</code> 與 <code>navigator.canShare()</code>，目標依訪客的語言用預設設定，帶 20 種常用語言；<code>/all</code> 帶全部 70 種語言；<code>/simple</code> 只有一個目標清單和英文。每個都還匯出 <code>share()</code>。',
     usage_pick_html: '<strong>自選目標和語言（建議）。</strong>沒有匯入的部分都會被 tree-shake 掉。',
     usage_direct_html: '<strong>直接呼叫。</strong><code>share()</code> 回傳所用目標的 id，方便統計。',
-    usage_script_html: '<strong>script 標籤。</strong>包含全部內容，API 在 <code>window.WebSharePolyfill</code> 上。',
+    usage_legacy_html:
+      '<strong>舊瀏覽器。</strong>Safari 15.4 之前和 Firefox 98 之前沒有模態 <code>&lt;dialog&gt;</code>，Firefox 63 之前沒有 Shadow DOM。在任意位置再加一行，面板在這些瀏覽器裡也能開啟：',
+    usage_script_html:
+      '<strong>script 標籤。</strong>包含全部內容，也支援舊瀏覽器，API 在 <code>window.WebSharePolyfill</code> 上。',
     options_title: '選項',
     opt_name: '選項',
     opt_default: '預設值',
@@ -567,6 +592,8 @@ export const T = {
     style_title: '樣式',
     style_lede_html:
       '面板位於 <code>&lt;web-share-polyfill&gt;</code> 元素的 shadow root 中：頁面的 CSS 影響不到它，它的 id 和 class 也不會與頁面衝突。它不使用內嵌樣式和 HTML 字串，在嚴格的內容安全政策（CSP）下也能運作。可以用自訂屬性和 part 調整樣式：',
+    style_legacy_html:
+      '在沒有 Shadow DOM 的瀏覽器裡（加了 <code>/legacy</code> 時），面板改放在 iframe 中：自訂屬性在面板開啟時複製進去，<code>::part()</code> 則不起作用。',
     how_title: '判斷邏輯',
     how_1_html:
       '存在 <code>navigator.share</code> 且它接受這份資料時，開啟原生面板。如果它以 <code>NotAllowedError</code> 或 <code>TypeError</code> 拒絕（見<a href="#beyond">原生 API 不行的地方</a>），改為開啟 polyfill 面板。其他錯誤，包括使用者取消時的 <code>AbortError</code>，都原樣拋出。',
@@ -581,7 +608,9 @@ export const T = {
     size_simple: '一個目標清單，僅英文（simple）',
     size_common: '預設目標，20 種常用語言（common）',
     size_all: '預設目標，所有語言（all）',
-    size_full: '全部（full、script 標籤）',
+    size_full: '全部（full）',
+    size_legacy: '核心 + 舊瀏覽器支援（legacy）',
+    size_script: '全部加 legacy（script 標籤）',
     footer_html:
       '品牌圖示來自 <a href="https://simpleicons.org/">Simple Icons</a>（CC0）；品牌名稱和標誌是其所有者的商標。',
     play_setup: '接入方式',
@@ -663,6 +692,8 @@ export const T = {
       '{date} に実際のブラウザーでテスト（{browsers}）。その他のデータは MDN の browser-compat-data {version} によります。ポリフィル使用時のバージョンは、そのシートを表示できる最も古いバージョンです。',
     compat_linux:
       '{browsers}：Linux では navigator.share() がありません（実際のブラウザーで確認）。MDN では対応と記載されています。',
+    compat_legacy:
+      'web-share-polyfill/legacy を使った場合（script タグ版には含まれています）。使わない場合、シートには <dialog> と Shadow DOM が必要です：{browsers}。',
     beyond_title: 'ネイティブ API ではできないこと',
     beyond_native: 'ネイティブの navigator.share()',
     beyond_1n: 'HTTPS のページのみ',
@@ -691,6 +722,7 @@ export const T = {
     theme_light: 'ライト',
     theme_dark: 'ダーク',
     play_native: 'ブラウザー自体の共有シートがあればそれを使う',
+    play_legacy: '古いブラウザーにも対応（Safari 15.4 より前、Firefox 98 より前）',
     play_targets: '共有先',
     qp_title: 'クイックプリセット',
     qp_default: 'よく使う言語',
@@ -749,8 +781,10 @@ export const T = {
       '<strong>共有先と言語を選ぶ（おすすめ）。</strong>import しなかったものはツリーシェイクで除かれます。',
     usage_direct_html:
       '<strong>直接呼び出す。</strong><code>share()</code> は使われた共有先の id を返すので、計測に便利です。',
+    usage_legacy_html:
+      '<strong>古いブラウザー。</strong>Safari 15.4 より前と Firefox 98 より前にはモーダルの <code>&lt;dialog&gt;</code> がなく、Firefox 63 より前には Shadow DOM がありません。どこかに 1 行追加すれば、これらのブラウザーでもシートが開きます：',
     usage_script_html:
-      '<strong>script タグ。</strong>すべて入り。API は <code>window.WebSharePolyfill</code> にあります。',
+      '<strong>script タグ。</strong>すべて入りで、古いブラウザーにも対応。API は <code>window.WebSharePolyfill</code> にあります。',
     options_title: 'オプション',
     opt_name: 'オプション',
     opt_default: 'デフォルト',
@@ -779,6 +813,8 @@ export const T = {
     style_title: 'スタイル',
     style_lede_html:
       'シートは <code>&lt;web-share-polyfill&gt;</code> 要素の shadow root の中にあるため、ページの CSS は届かず、id や class がページと衝突することもありません。インラインスタイルや HTML 文字列を使わないので、厳格なコンテンツセキュリティポリシーの下でも動きます。カスタムプロパティと part で調整できます：',
+    style_legacy_html:
+      'Shadow DOM のないブラウザーでは（<code>/legacy</code> 使用時）、シートは iframe の中に置かれます。カスタムプロパティはシートを開いたときにコピーされ、<code>::part()</code> は効きません。',
     how_title: '動作の決まり方',
     how_1_html:
       '<code>navigator.share</code> があり、データを受け付ける場合はネイティブのシートを開きます。<code>NotAllowedError</code> や <code>TypeError</code> で拒否された場合（<a href="#beyond">ネイティブ API ではできないこと</a>を参照）は、代わりにポリフィルのシートを開きます。キャンセル時の <code>AbortError</code> を含むそれ以外のエラーはそのまま投げます。',
@@ -794,7 +830,9 @@ export const T = {
     size_simple: '共有先リスト 1 つ、英語のみ（simple）',
     size_common: 'デフォルトの共有先、よく使われる 20 言語（common）',
     size_all: 'デフォルトの共有先、全言語（all）',
-    size_full: 'すべて（full、script タグ）',
+    size_full: 'すべて（full）',
+    size_legacy: 'コア + 古いブラウザー対応（legacy）',
+    size_script: 'すべて + legacy（script タグ）',
     footer_html:
       'ブランドアイコンは <a href="https://simpleicons.org/">Simple Icons</a>（CC0）より。ブランド名とロゴは各所有者の商標です。',
     play_setup: '導入方法',
@@ -877,6 +915,8 @@ export const T = {
       'Testé dans de vrais navigateurs le {date} ({browsers}) ; les autres données viennent de browser-compat-data {version} de MDN. Avec le polyfill, la version indiquée est la plus ancienne qui peut afficher sa feuille.',
     compat_linux:
       '{browsers} : pas de navigator.share() sous Linux dans nos tests avec de vrais navigateurs, bien que MDN les indique comme pris en charge.',
+    compat_legacy:
+      'Avec web-share-polyfill/legacy, inclus dans la version pour balise script. Sans lui, la feuille a besoin de <dialog> et du Shadow DOM : {browsers}.',
     beyond_title: 'Là où l’API native dit non',
     beyond_native: 'navigator.share() natif',
     beyond_1n: 'Pages HTTPS uniquement',
@@ -906,6 +946,7 @@ export const T = {
     theme_light: 'Clair',
     theme_dark: 'Sombre',
     play_native: 'Utiliser la feuille de partage du navigateur quand il en a une',
+    play_legacy: 'Navigateurs anciens aussi (Safari avant 15.4, Firefox avant 98)',
     play_targets: 'Cibles de partage',
     qp_title: 'Préréglages rapides',
     qp_default: 'Courantes',
@@ -966,8 +1007,10 @@ export const T = {
       '<strong>Choisir les cibles et les langues (recommandé).</strong> Tout ce que vous n’importez pas est éliminé par le tree-shaking.',
     usage_direct_html:
       '<strong>Appel direct.</strong> <code>share()</code> renvoie l’id de la cible utilisée, pratique pour les statistiques.',
+    usage_legacy_html:
+      '<strong>Navigateurs anciens.</strong> Safari avant 15.4 et Firefox avant 98 n’ont pas de <code>&lt;dialog&gt;</code> modal, et Firefox avant 63 pas de Shadow DOM. Une ligne de plus, n’importe où, et la feuille s’ouvre aussi chez eux :',
     usage_script_html:
-      '<strong>Balise script.</strong> Tout est inclus ; l’API est sur <code>window.WebSharePolyfill</code>.',
+      '<strong>Balise script.</strong> Tout est inclus, navigateurs anciens compris ; l’API est sur <code>window.WebSharePolyfill</code>.',
     options_title: 'Options',
     opt_name: 'Option',
     opt_default: 'Défaut',
@@ -997,6 +1040,8 @@ export const T = {
     style_title: 'Style',
     style_lede_html:
       'La feuille vit dans une shadow root sous un élément <code>&lt;web-share-polyfill&gt;</code> : le CSS de la page ne l’atteint pas, et ses id et classes ne peuvent pas entrer en conflit avec les vôtres. Elle n’utilise ni styles en ligne ni chaînes HTML, et fonctionne donc avec une politique de sécurité du contenu stricte. Ajustez-la avec des propriétés personnalisées et des parts :',
+    style_legacy_html:
+      'Dans les navigateurs sans Shadow DOM (avec <code>/legacy</code>), la feuille est dans une iframe : les propriétés personnalisées y sont copiées à l’ouverture, et <code>::part()</code> ne l’atteint pas.',
     how_title: 'Comment il choisit',
     how_1_html:
       'Si <code>navigator.share</code> existe et accepte les données, la feuille native s’ouvre. Si elle les refuse avec <code>NotAllowedError</code> ou <code>TypeError</code> (voir <a href="#beyond">là où l’API native dit non</a>), la feuille du polyfill s’ouvre à la place. Les autres erreurs, dont <code>AbortError</code> quand la personne annule, sont transmises.',
@@ -1012,7 +1057,9 @@ export const T = {
     size_simple: 'Une liste de cibles, anglais seulement (simple)',
     size_common: 'Cibles par défaut, 20 langues courantes (common)',
     size_all: 'Cibles par défaut, toutes les langues (all)',
-    size_full: 'Tout (full, balise script)',
+    size_full: 'Tout (full)',
+    size_legacy: 'Cœur + navigateurs anciens (legacy)',
+    size_script: 'Tout avec legacy (balise script)',
     footer_html:
       'Icônes de marques de <a href="https://simpleicons.org/">Simple Icons</a> (CC0) ; les noms et logos sont des marques de leurs propriétaires.',
     play_setup: 'Intégration',
@@ -1096,6 +1143,8 @@ export const T = {
       'Probado en navegadores reales el {date} ({browsers}); el resto de datos es de browser-compat-data {version} de MDN. Con el polyfill, la versión indicada es la más antigua que puede mostrar su hoja.',
     compat_linux:
       '{browsers}: no hay navigator.share() en Linux en nuestras pruebas con navegadores reales, aunque MDN los marca como compatibles.',
+    compat_legacy:
+      'Con web-share-polyfill/legacy, incluido en la versión para etiqueta script. Sin él, la hoja necesita <dialog> y Shadow DOM: {browsers}.',
     beyond_title: 'Donde la API nativa dice que no',
     beyond_native: 'navigator.share() nativo',
     beyond_1n: 'Solo páginas HTTPS',
@@ -1125,6 +1174,7 @@ export const T = {
     theme_light: 'Claro',
     theme_dark: 'Oscuro',
     play_native: 'Usar la hoja de compartir del navegador cuando tenga una',
+    play_legacy: 'También navegadores antiguos (Safari antes de 15.4, Firefox antes de 98)',
     play_targets: 'Destinos',
     qp_title: 'Ajustes rápidos',
     qp_default: 'Comunes',
@@ -1185,8 +1235,10 @@ export const T = {
       '<strong>Elegir destinos e idiomas (recomendado).</strong> Lo que no importes se elimina con tree-shaking.',
     usage_direct_html:
       '<strong>Llamada directa.</strong> <code>share()</code> devuelve el id del destino usado, útil para estadísticas.',
+    usage_legacy_html:
+      '<strong>Navegadores antiguos.</strong> Safari antes de 15.4 y Firefox antes de 98 no tienen <code>&lt;dialog&gt;</code> modal, y Firefox antes de 63 no tiene Shadow DOM. Con una línea más, en cualquier sitio, la hoja también se abre en ellos:',
     usage_script_html:
-      '<strong>Etiqueta script.</strong> Todo incluido; la API está en <code>window.WebSharePolyfill</code>.',
+      '<strong>Etiqueta script.</strong> Todo incluido, también para navegadores antiguos; la API está en <code>window.WebSharePolyfill</code>.',
     options_title: 'Opciones',
     opt_name: 'Opción',
     opt_default: 'Predeterminado',
@@ -1215,6 +1267,8 @@ export const T = {
     style_title: 'Estilos',
     style_lede_html:
       'La hoja vive en una shadow root dentro de un elemento <code>&lt;web-share-polyfill&gt;</code>: el CSS de la página no la alcanza y sus id y clases no chocan con los tuyos. No usa estilos en línea ni cadenas HTML, así que funciona con una política de seguridad de contenido estricta. Ajústala con propiedades personalizadas y parts:',
+    style_legacy_html:
+      'En navegadores sin Shadow DOM (con <code>/legacy</code>), la hoja va en un iframe: las propiedades personalizadas se copian al abrirla y <code>::part()</code> no la alcanza.',
     how_title: 'Cómo decide',
     how_1_html:
       'Si existe <code>navigator.share</code> y acepta los datos, se abre la hoja nativa. Si los rechaza con <code>NotAllowedError</code> o <code>TypeError</code> (ver <a href="#beyond">donde la API nativa dice que no</a>), se abre la del polyfill. Los demás errores, incluido <code>AbortError</code> cuando la persona cancela, se propagan.',
@@ -1230,7 +1284,9 @@ export const T = {
     size_simple: 'Una lista de destinos, solo inglés (simple)',
     size_common: 'Destinos predeterminados, 20 idiomas comunes (common)',
     size_all: 'Destinos predeterminados, todos los idiomas (all)',
-    size_full: 'Todo (full, etiqueta script)',
+    size_full: 'Todo (full)',
+    size_legacy: 'Núcleo + navegadores antiguos (legacy)',
+    size_script: 'Todo con legacy (etiqueta script)',
     footer_html:
       'Iconos de marcas de <a href="https://simpleicons.org/">Simple Icons</a> (CC0); los nombres y logotipos son marcas de sus propietarios.',
     play_setup: 'Integración',

@@ -63,6 +63,5 @@ const T: Record<string, ShareTarget> = {
 }
 
 /** Default targets by viewer language, `'*'` for the others. */
-export const lists: Record<string, ShareTarget[]> = Object.fromEntries(
-  Object.entries(defaults).map(([lang, ids]) => [lang, ids.map((id) => T[id])]),
-)
+export const lists: Record<string, ShareTarget[]> = {}
+for (const [lang, ids] of Object.entries(defaults)) lists[lang] = ids.map((id) => T[id])

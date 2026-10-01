@@ -4,18 +4,21 @@
   the ::part() names documented in the README.
 
   Two looks: .m (Android / Chrome, the default) and .a (iOS / macOS).
+
+  Older browsers: no light-dark(), color-mix(), flex gap, inset, min() or :focus-visible
+  without a fallback.
 */
 :host {
   all: initial;
 }
 dialog {
   /* Defaults (Android / Chrome look), overridden by .a below */
-  --B: light-dark(#fff, #1e1f20);
-  --F: light-dark(#1f1f1f, #e3e3e3);
-  --M: light-dark(#5f6368, #a8abaf);
-  --T: light-dark(#edf0f3, #303134);
-  --L: light-dark(#dadce0, #3c4043);
-  --A: light-dark(#0b57d0, #a8c7fa);
+  --B: #fff;
+  --F: #1f1f1f;
+  --M: #5f6368;
+  --T: #edf0f3;
+  --L: #dadce0;
+  --A: #0b57d0;
   --R: 28px;
   /* Public custom properties win over the defaults */
   --b: var(--wsp-bg, var(--B));
@@ -30,8 +33,8 @@ dialog {
   --g: initial;
   color-scheme: light dark;
   box-sizing: border-box;
-  width: min(460px, 100% - 32px);
-  max-width: none;
+  width: calc(100% - 32px);
+  max-width: 460px;
   max-height: calc(100% - 32px);
   margin: auto;
   padding: 0;
@@ -56,7 +59,7 @@ dialog[open] {
   color-scheme: dark;
 }
 dialog::backdrop {
-  background: var(--wsp-backdrop, #0006);
+  background: var(--wsp-backdrop, rgba(0, 0, 0, 0.4));
   animation: wf 0.24s;
 }
 .z {
@@ -95,14 +98,30 @@ header,
 .vh {
   display: flex;
   align-items: center;
-  gap: 12px;
+}
+/* Margins rather than flex gap */
+header > * + *,
+.vh > * + * {
+  margin-left: 12px;
+}
+[dir='rtl'] header > * + *,
+[dir='rtl'] .vh > * + * {
+  margin-left: 0;
+  margin-right: 12px;
+}
+.i > * + * {
+  margin-top: 8px;
+}
+.v > * + * {
+  margin-top: 14px;
 }
 .f,
 .x,
 .k,
 .c {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .t *,
 .l {
@@ -133,7 +152,8 @@ header {
 }
 .f img {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -173,7 +193,7 @@ button {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--f) 9%, transparent);
+  background: var(--t);
   color: var(--m);
 }
 .x svg,
@@ -201,7 +221,7 @@ svg {
 .q {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-  gap: 8px 0;
+  grid-gap: 8px 0;
   padding: 4px 12px 12px;
 }
 .q {
@@ -216,7 +236,6 @@ svg {
 .i {
   box-sizing: border-box;
   align-items: center;
-  gap: 8px;
   min-width: 0;
   padding: 6px 2px;
   border-radius: 16px;
@@ -227,12 +246,27 @@ svg {
   -webkit-tap-highlight-color: transparent;
 }
 .i:hover {
-  background: color-mix(in srgb, currentColor 7%, transparent);
+  background: var(--t);
 }
-a:focus-visible,
-button:focus-visible {
+/* Behind @supports: with var() inside, an unknown color-mix() would wipe out the solid colors above */
+@supports (background: color-mix(in srgb, red, red)) {
+  .x,
+  .k {
+    background: color-mix(in srgb, var(--f) 9%, transparent);
+  }
+  .i:hover {
+    background: color-mix(in srgb, currentColor 7%, transparent);
+  }
+}
+a:focus,
+button:focus {
   outline: 2px solid var(--a);
   outline-offset: 2px;
+}
+/* Dropped where :focus-visible is unknown, so those browsers keep the outline on every focus */
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible) {
+  outline: 0;
 }
 .c {
   width: 52px;
@@ -254,13 +288,49 @@ button:focus-visible {
 
 /* iOS / macOS look */
 .a {
-  --B: light-dark(#f2f2f7, #1c1c1e);
-  --F: light-dark(#000, #fff);
-  --M: light-dark(#8a8a8e, #98989f);
-  --T: light-dark(#fff, #2c2c2e);
-  --L: light-dark(#c6c6c8, #38383a);
-  --A: light-dark(#007aff, #0a84ff);
+  --B: #f2f2f7;
+  --F: #000;
+  --M: #8a8a8e;
+  --T: #fff;
+  --L: #c6c6c8;
+  --A: #007aff;
   --R: 16px;
+}
+
+/* Dark colors: with the system's dark mode unless theme: 'light' (.lt), and with theme: 'dark' (.dk) */
+@media (prefers-color-scheme: dark) {
+  dialog:not(.lt) {
+    --B: #1e1f20;
+    --F: #e3e3e3;
+    --M: #a8abaf;
+    --T: #303134;
+    --L: #3c4043;
+    --A: #a8c7fa;
+  }
+  .a:not(.lt) {
+    --B: #1c1c1e;
+    --F: #fff;
+    --M: #98989f;
+    --T: #2c2c2e;
+    --L: #38383a;
+    --A: #0a84ff;
+  }
+}
+.dk {
+  --B: #1e1f20;
+  --F: #e3e3e3;
+  --M: #a8abaf;
+  --T: #303134;
+  --L: #3c4043;
+  --A: #a8c7fa;
+}
+.a.dk {
+  --B: #1c1c1e;
+  --F: #fff;
+  --M: #98989f;
+  --T: #2c2c2e;
+  --L: #38383a;
+  --A: #0a84ff;
 }
 .a .c {
   width: 58px;
@@ -289,6 +359,9 @@ button:focus-visible {
   font-size: 16px;
   text-align: start;
 }
+.a .q .i > * + * {
+  margin-top: 0;
+}
 .a .q .i + .i {
   box-shadow: inset 0 0.5px var(--l);
 }
@@ -305,7 +378,6 @@ button:focus-visible {
 /* Sub-view (QR code) */
 .v {
   align-items: center;
-  gap: 14px;
   padding: 0 20px 8px;
 }
 .vh {
@@ -314,7 +386,8 @@ button:focus-visible {
 }
 .qr {
   box-sizing: border-box;
-  width: min(264px, 100%);
+  width: 264px;
+  max-width: 100%;
   height: auto;
   padding: 12px;
   border-radius: 16px;
@@ -337,6 +410,7 @@ button:focus-visible {
 @media (max-width: 599px) {
   dialog {
     width: 100%;
+    max-width: none;
     max-height: calc(100% - 48px);
     margin: auto 0 0;
     border-radius: var(--r) var(--r) 0 0;

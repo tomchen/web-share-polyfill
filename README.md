@@ -4,7 +4,7 @@
 
 `navigator.share()` for every browser. When the browser has its own share sheet, it is used. When it doesn't (Chrome and Edge on Linux, Firefox on desktop, in-app browsers, iframes without permission), a small share sheet that looks like the native one opens instead: copy link, QR code, email, SMS, and 40+ apps, in 70 languages.
 
-**[Docs and live demo](https://web-share-polyfill.js.org/)**
+**[Docs, live demo & code builder](https://web-share-polyfill.js.org/)**
 
 <p>
   <img src="https://raw.githubusercontent.com/tomchen/web-share-polyfill/main/site/img/android-light.png" width="200" alt="Share sheet, Android look">
@@ -15,7 +15,7 @@
 
 - **Native first.** The browser's share sheet is always preferred. When it refuses a share, the fallback sheet opens instead: [the polyfill works where the native API says no](#beyond-the-native-api).
 - **Looks native.** iOS style on Apple devices, Android/Chrome style elsewhere. Bottom sheet on phones, dialog on desktop, dark mode, right-to-left languages.
-- **Small and tree-shakable.** The core is 4.5 KB gzipped, about 8 KB with a handful of targets. Each target and each language is a separate export, so you only ship what you use.
+- **Small and tree-shakable.** The core is 5 KB gzipped, about 8.5 KB with a handful of targets. Each target and each language is a separate export, so you only ship what you use.
 - **70 languages**, chosen from the viewer's browser language. **Default targets depend on the language too**: WeChat, Weibo and QQ for Chinese, LINE for Japanese and Traditional Chinese, KakaoTalk and BAND for Korean, VK and Telegram for Russian, and so on.
 - **Isolated.** The sheet lives in a shadow root under a `<web-share-polyfill>` element, so its ids, classes and styles can't collide with your page's. No inline styles or HTML strings, so it works under a strict Content Security Policy and Trusted Types.
 - **Spec behavior.** `navigator.share()` resolves when something was shared and rejects with an `AbortError` when the sheet is dismissed. `navigator.canShare()` is polyfilled too. Apps open as real links (`<a target="_blank">`), so popup blockers don't get in the way.
@@ -26,12 +26,14 @@
 npm i web-share-polyfill
 ```
 
-Or with a script tag, which installs the polyfill with every target and language (about 21 KB gzipped):
+Or with a script tag, which installs the polyfill with every target and language, and the fallbacks for [older browsers](#browser-support) (about 24 KB gzipped):
 
 <!-- vbt-version +2 -->
 ```html
 <script src="https://cdn.jsdelivr.net/npm/web-share-polyfill@0.1.1/dist/web-share-polyfill.js"></script>
 ```
+
+For browsers without a modal `<dialog>` or Shadow DOM (Safari before 15.4, Firefox before 98), add `import 'web-share-polyfill/legacy'` too: see [browser support](#browser-support).
 
 ## Usage
 
@@ -242,6 +244,8 @@ For more, the parts are `sheet`, `close`, `target`, `icon` and `label`:
 web-share-polyfill::part(target) { border-radius: 8px; }
 ```
 
+In browsers without Shadow DOM (with [`/legacy`](#browser-support)), the sheet is in an iframe instead: the custom properties are copied into it when it opens, and `::part()` doesn't reach it.
+
 ## Beyond the native API
 
 The native `navigator.share()` has restrictions that the polyfill doesn't have. Where the native API says no, the fallback sheet opens instead:
@@ -271,19 +275,32 @@ Minified and gzipped, measured by the build (`dist/sizes.json`):
 
 | | gzip | brotli |
 | --- | --- | --- |
-| Core (`polyfill()`, English, no targets) | 4.5 KB | 4.0 KB |
-| Core + copy, save, qr, email, sms, more (the Minimal preset) | 7.2 KB | 6.5 KB |
-| Core + copy, qr, email and 5 apps | 7.9 KB | 7.1 KB |
-| One target list, English only (`/simple`) | 8.8 KB | 7.9 KB |
-| Default targets, 20 common languages (`/common`) | 13.9 KB | 12.0 KB |
-| Default targets, every language (`/all`) | 18.1 KB | 15.2 KB |
-| Everything (`/full`, script tag) | 21.2 KB | 17.9 KB |
+| Core (`polyfill()`, English, no targets) | 5.0 KB | 4.4 KB |
+| Core + `/legacy` | 6.6 KB | 5.9 KB |
+| Core + copy, save, qr, email, sms, more (the Minimal preset) | 7.9 KB | 7.1 KB |
+| Core + copy, qr, email and 5 apps | 8.6 KB | 7.7 KB |
+| One target list, English only (`/simple`) | 9.5 KB | 8.5 KB |
+| Default targets, 20 common languages (`/common`) | 14.7 KB | 12.6 KB |
+| Default targets, every language (`/all`) | 18.9 KB | 15.9 KB |
+| Everything (`/full`) | 22.1 KB | 18.6 KB |
+| Everything with `/legacy` (script tag) | 23.9 KB | 19.9 KB |
 
 The QR code encoder (1.8 KB) is only included with the `qr` or `wechat` targets.
 
 ## Browser support
 
-Browsers with `<dialog>`, shadow DOM and CSS `light-dark()`: Chrome and Edge 123+, Firefox 120+, Safari 17.5+. Older Safari versions have native Web Share and never need the sheet.
+The code runs in browsers with ES modules: Chrome 61+, Edge 79+, Firefox 60+, Safari 11+. The sheet also needs a modal `<dialog>` and Shadow DOM, which leaves out Firefox before 98 and Safari before 15.4. For those, add the fallbacks (1.6 KB gzipped, already in the script-tag build):
+
+```js
+import 'web-share-polyfill/legacy'
+```
+
+- **No `<dialog>`** (Safari before 15.4, Firefox before 98): the sheet opens in an overlay that acts like a modal dialog. Escape and backdrop clicks close it, Tab stays in it, the page behind is hidden from screen readers and taken out of the tab order, and focus goes back where it was. It can't be in the browser's top layer, though: a native modal or fullscreen element opened later covers it.
+- **No Shadow DOM** (Firefox before 63): the sheet is in a same-origin iframe, which keeps page and sheet styles apart. See [Styling](#styling) for what that changes.
+
+Colors, layout and focus rings have fallbacks for browsers without `light-dark()`, `color-mix()`, flex `gap` or `:focus-visible`, and copying for those without the async clipboard or `Blob.text()`. Copying an image needs `ClipboardItem`: where it is missing, the copy target doesn't offer image files.
+
+The tests run in current Chromium, Firefox and WebKit, with each missing feature simulated, not in the old browser versions themselves.
 
 ## Development
 

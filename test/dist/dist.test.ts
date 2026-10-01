@@ -56,23 +56,37 @@ describe('dist', () => {
     dismiss()
     await expect(p).rejects.toMatchObject({ name: 'AbortError' })
   })
+
+  it('script-tag bundle installs without Object.fromEntries (Safari before 12.1)', () => {
+    // Mask only the bundle's Object, leaving the test runner's alone
+    const oldObject = new Proxy(Object, {
+      get: (target, key) => (key == 'fromEntries' ? undefined : Reflect.get(target, key)),
+    })
+    const W = new Function('Object', bundle + '\nreturn WebSharePolyfill')(oldObject)
+    expect(W.resolve({ targets: { '*': ['copy', 'x'] } }).targets['*'].map((t: { id: string }) => t.id)).toEqual([
+      'copy',
+      'x',
+    ])
+    expect(navigator.canShare({ url: 'https://example.com' })).toBe(true)
+  })
 })
 
 // Size budgets (gzip bytes, from dist/sizes.json). A failure means the library grew:
 // raise a budget only on purpose, and update the sizes in the README with it.
 describe('size', () => {
   const sizes = JSON.parse(sizesJson) as Record<
-    'core' | 'minimal' | 'typical' | 'simple' | 'common' | 'all' | 'full',
+    'core' | 'legacy' | 'minimal' | 'typical' | 'simple' | 'common' | 'all' | 'full',
     { gzip: number }
   >
   it.each([
-    ['core', 4900],
-    ['minimal', 7800],
-    ['typical', 8600],
-    ['simple', 9500],
-    ['common', 15000],
-    ['all', 19500],
-    ['full', 22900],
+    ['core', 5300],
+    ['legacy', 7000],
+    ['minimal', 8300],
+    ['typical', 9000],
+    ['simple', 10000],
+    ['common', 15400],
+    ['all', 19800],
+    ['full', 23000],
   ] as const)('%s stays under %i bytes gzipped', (name, budget) => {
     expect(sizes[name].gzip).toBeLessThanOrEqual(budget)
   })

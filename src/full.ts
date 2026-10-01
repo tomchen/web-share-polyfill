@@ -51,12 +51,12 @@ const resolveList = (list: List): ShareTarget[] =>
 /** Turn `FullOptions` into core `Options`. */
 export const resolve = (o: FullOptions = {}): Options => {
   const t = o.targets || defaults
+  const lists: Record<string, ShareTarget[]> = {}
+  if (!Array.isArray(t)) for (const [lang, list] of Object.entries(t)) lists[lang] = resolveList(list)
   return {
     ...o,
     locales: o.locales ? o.locales.map((l) => byCode[l.toLowerCase()] || l).filter((l) => l.includes('|')) : locales,
-    targets: Array.isArray(t)
-      ? resolveList(t)
-      : Object.fromEntries(Object.entries(t).map(([lang, list]) => [lang, resolveList(list)])),
+    targets: Array.isArray(t) ? resolveList(t) : lists,
   }
 }
 

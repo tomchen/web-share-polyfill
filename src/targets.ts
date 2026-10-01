@@ -5,7 +5,7 @@
  * Actions (copy, QR code, email, SMS, print, more) are handled in the page.
  */
 import * as I from './icons.js'
-import { icon, nativeShare, type ShareInput, type Sheet, type ShareTarget } from './index.js'
+import { icon, nativeShare, type ShareData, type ShareInput, type Sheet, type ShareTarget } from './index.js'
 import { qr as encode, qrPath } from './qr.js'
 
 /** Build `base?key=value&…`, skipping empty values. */
@@ -43,6 +43,17 @@ const png = async (file: Blob): Promise<Blob> => {
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject()), 'image/png'))
 }
 
+/** A text file's contents (FileReader where there is no Blob.text(): Safari before 14, Chrome before 76). */
+const fileText = (file: Blob): Promise<string> =>
+  typeof file.text == 'function'
+    ? file.text()
+    : new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = () => reject(reader.error)
+        reader.readAsText(file)
+      })
+
 /**
  * Copy the link (or the text when there is no link). With nothing but files: copy one image, or the
  * contents of one text file.
@@ -52,39 +63,47 @@ export const copy: ShareTarget = {
   name: (d, t) => (d.url ? t.copyLink : t.copy),
   icon: COPY,
   stroke: true,
-  files: (f) => f.length == 1 && /^(image|text)\//.test(f[0].type),
+  // Images only where they can be copied
+  files: (f) =>
+    f.length == 1 &&
+    (/^text\//.test(f[0].type) ||
+      (/^image\//.test(f[0].type) &&
+        !!navigator.clipboard?.write &&
+        typeof ClipboardItem != 'undefined' &&
+        (f[0].type == 'image/png' || typeof createImageBitmap == 'function'))),
   run(d, s) {
     const value = d.url || d.text || d.title
     const done = () => {
       s.ok()
       s.item.querySelector('.l')!.textContent = s.strings.copied
-      s.item.querySelector('.c')!.replaceChildren(icon(CHECK, true))
+      const c = s.item.querySelector('.c')!
+      c.textContent = ''
+      c.appendChild(icon(CHECK, true))
       setTimeout(s.close, 800)
     }
-    const file = !value && d.files[0]
-    if (file) {
-      // Start the write right away (Safari wants it within the click): the item waits for the PNG
-      ;(file.type.startsWith('text/')
-        ? file.text().then((t) => navigator.clipboard.writeText(t))
-        : navigator.clipboard.write([new ClipboardItem({ 'image/png': png(file) })])
-      ).then(done, () => {})
-      return
-    }
-    const legacy = () => {
-      const ta = document.createElement('textarea')
+    const legacy = (text: string) => {
+      const doc = s.item.ownerDocument
+      const ta = doc.createElement('textarea')
       ta.className = 'o'
-      ta.value = value
+      ta.value = text
       s.item.appendChild(ta)
       ta.select()
-      const ok = document.execCommand('copy')
+      const ok = doc.execCommand('copy')
       ta.remove()
       if (ok) done()
     }
-    try {
-      navigator.clipboard.writeText(value).then(done, legacy)
-    } catch {
-      legacy()
+    const write = (text: string) => {
+      try {
+        navigator.clipboard.writeText(text).then(done, () => legacy(text))
+      } catch {
+        legacy(text)
+      }
     }
+    const file = !value && d.files[0]
+    if (!file) return write(value)
+    if (file.type.startsWith('text/')) return fileText(file).then(write, () => {})
+    // Start the write right away (Safari wants it within the click): the item waits for the PNG
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': png(file) })]).then(done, () => {})
   },
 }
 
@@ -105,7 +124,7 @@ export const save: ShareTarget = {
       a.href = URL.createObjectURL(f)
       a.download = f.name
       // In the page, so that every browser follows it
-      document.body.append(a)
+      document.body.appendChild(a)
       a.click()
       a.remove()
       setTimeout(() => URL.revokeObjectURL(a.href), 60_000)
@@ -126,7 +145,8 @@ export function qrView(text: string, s: Sheet, title = s.label): void {
   p.className = 'u'
   p.textContent = text
   const f = document.createDocumentFragment()
-  f.append(svg, p)
+  f.appendChild(svg)
+  f.appendChild(p)
   s.ok()
   s.view(title, f)
 }
@@ -182,7 +202,12 @@ export const more: ShareTarget = {
   stroke: true,
   when: () => nativeShare,
   run(d, s) {
-    s.ok(nativeShare!(Object.fromEntries(Object.entries(d).filter(([, v]) => v.length))).then(() => 'native'))
+    const data: ShareData = {}
+    if (d.title) data.title = d.title
+    if (d.text) data.text = d.text
+    if (d.url) data.url = d.url
+    if (d.files.length) data.files = d.files
+    s.ok(nativeShare!(data).then(() => 'native'))
     s.close()
   },
 }

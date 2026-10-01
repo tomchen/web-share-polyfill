@@ -193,6 +193,15 @@ describe('files', () => {
   const pdf = () => new File(['%PDF'], 'doc.pdf', { type: 'application/pdf' })
   const txt = () => new File(['Hello'], 'note.txt', { type: 'text/plain' })
 
+  beforeEach(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { write: () => Promise.resolve(), writeText: () => Promise.resolve() },
+      configurable: true,
+    })
+    vi.stubGlobal('ClipboardItem', class {})
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
   it('canShare() says yes only when something can take the files', async () => {
     const { canShare, polyfill, T } = await load()
     const files = [pdf()]

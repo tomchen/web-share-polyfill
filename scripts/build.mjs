@@ -8,6 +8,7 @@ import { minify } from 'terser'
 
 const ENTRIES = [
   'index',
+  'legacy',
   'targets',
   'locales',
   'defaults',
@@ -21,14 +22,24 @@ const ENTRIES = [
   'all',
   'simple',
 ]
-const TARGET = ['chrome100', 'firefox100', 'safari15']
+// The first browsers with ES modules (Chromium-based Edge). Newer APIs are feature-detected.
+const TARGET = ['chrome61', 'edge79', 'firefox60', 'safari11']
 // Keep non-ASCII text (the translations) as UTF-8 instead of \u escapes: much smaller before compression.
 // Module scripts are always UTF-8, and CDNs serve the script-tag file as UTF-8.
-const COMMON = { minify: true, target: TARGET, legalComments: 'none', charset: 'utf8' }
+// esbuild can't lower destructuring for Safari before 14.1, which has bugs only in edge cases this code avoids.
+const COMMON = {
+  minify: true,
+  target: TARGET,
+  supported: { destructuring: true },
+  legalComments: 'none',
+  charset: 'utf8',
+}
 
 // 1. Minified CSS as a module
 // esbuild keeps custom property values verbatim, so squeeze the spaces it leaves there
-const css = (await transform(readFileSync('src/style.css', 'utf8'), { loader: 'css', minify: true })).code
+const css = (
+  await transform(readFileSync('src/style.css', 'utf8'), { loader: 'css', minify: true, target: TARGET })
+).code
   .trim()
   .replace(/([:,(])\s+/g, '$1')
   .replace(/\s+\)/g, ')')
@@ -62,7 +73,7 @@ for (const f of readdirSync('dist')) {
   const file = `dist/${f}`
   const { code } = await minify(readFileSync(file, 'utf8'), {
     module: f != 'web-share-polyfill.js',
-    ecma: 2020,
+    ecma: 2015,
     compress: { passes: 3 },
     format: { ascii_only: false, comments: false, preserve_annotations: true },
   })
@@ -75,6 +86,8 @@ execSync('bunx tsc -p tsconfig.build.json', { stdio: 'inherit' })
 // 5. Sizes of typical bundles (minified + tree-shaken by esbuild)
 const scenarios = {
   core: `import { polyfill } from './dist/index.js'; polyfill()`,
+  // The core with the fallbacks for older browsers
+  legacy: `import { polyfill } from './dist/index.js'; import './dist/legacy.js'; polyfill()`,
   // The smallest useful setup: the Minimal preset, actions only, in English
   minimal: `import { polyfill } from './dist/index.js'
     import { copy, save, qr, email, sms, more } from './dist/targets.js'
@@ -102,6 +115,13 @@ const measure = async (contents) => {
 }
 const sizes = {}
 for (const [name, contents] of Object.entries(scenarios)) sizes[name] = await measure(contents)
+// The script-tag file itself: everything, with /legacy
+const script = readFileSync('dist/web-share-polyfill.js')
+sizes.script = {
+  min: script.length,
+  gzip: gzipSync(script, { level: 9 }).length,
+  brotli: brotliCompressSync(script).length,
+}
 console.table(sizes)
 
 // 6. What each target and locale adds to the core (gzip), for the playground's size estimate

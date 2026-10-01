@@ -42,13 +42,12 @@ const FEATURES = {
   'data.text': N.share.data_text_parameter,
   'data.files': N.share.data_files_parameter,
 }
-// The sheet's newest requirements (the script itself targets older versions)
-const SHEET = [
-  bcd.css.types.color['light-dark'],
-  bcd.css.types.color['color-mix'],
-  bcd.html.elements.dialog,
-  bcd.api.Element.attachShadow,
-]
+// What the sheet needs with /legacy (in the script tag): ES modules and CSS custom properties, from the
+// build's targets on (scripts/build.mjs: Chromium-based Edge, Safari 11)
+const SHEET = [bcd.javascript.statements.import, bcd.css.properties['custom-property']]
+const FLOOR = { edge: '79', safari: '11', safari_ios: '11', webview_ios: '11' }
+// Without /legacy, also <dialog> and Shadow DOM
+const CORE = [bcd.html.elements.dialog, bcd.api.Element.attachShadow]
 const probe = JSON.parse(readFileSync('site/probe.json', 'utf8'))
 /**
  * Support of a feature in one column. MDN has no per-OS data: for Chrome and Edge it lists an early
@@ -87,7 +86,14 @@ const compat = {
       Object.fromEntries(COLUMNS.map((c) => [key(c), support(f, c)])),
     ]),
   ),
-  sheet: Object.fromEntries(BROWSERS.map((b) => [b, newest(SHEET.map((f) => statement(f, b).version_added))])),
+  sheet: {},
+  // The versions the sheet needs without /legacy, where they differ
+  core: {},
+}
+for (const b of BROWSERS) {
+  const v = (compat.sheet[b] = newest([...SHEET.map((f) => statement(f, b).version_added), FLOOR[b]].filter(Boolean)))
+  const core = newest([v, ...CORE.map((f) => statement(f, b).version_added)])
+  if (core != v) compat.core[b] = core
 }
 writeFileSync('_site/lib/compat.json', JSON.stringify(compat) + '\n')
 // GitHub Pages: serve files as is

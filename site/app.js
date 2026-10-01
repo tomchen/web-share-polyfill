@@ -279,6 +279,8 @@ const S = {
   accent: '',
   radius: '',
   native: true,
+  // Add web-share-polyfill/legacy (npm: the script tag has it)
+  legacy: false,
   // UI text overrides by language, '*' for all of them; and the one being edited
   strings: { '*': {} },
   sedit: '*',
@@ -816,6 +818,7 @@ const genCode = () => {
       entry = ready
       head = [call ? `import { share } from 'web-share-polyfill/${ready}'` : `import 'web-share-polyfill/${ready}'`]
     }
+    if (S.legacy) head.push(`import 'web-share-polyfill/legacy' // older browsers`)
     blocks.push(['Terminal', installCmd()])
     blocks.push(['JavaScript', [...head, '', ...body].join('\n')])
     blocks.push(['HTML', '<button id="share" type="button">Share</button>'])
@@ -889,13 +892,15 @@ const smallestSize = () => {
 const renderSize = () => {
   if (!sizes) return
   const kb = (n) => (n / 1024).toFixed(1) + ' KB'
-  if (entry == 'small') {
-    const [bytes, measured] = smallestSize()
-    $('#p-size').textContent = (measured ? '' : '≈ ') + kb(bytes)
-    $('#p-size-note').textContent = t(measured ? 'size_measured_note' : 'size_npm_note')
+  // /legacy on top of an npm setup: what it adds to the core
+  const extra = S.legacy && entry != 'script' ? sizes.legacy.gzip - sizes.core.gzip : 0
+  if (entry == 'small' || extra) {
+    const [bytes, measured] = entry == 'small' ? smallestSize() : [sizes[entry].gzip, true]
+    $('#p-size').textContent = (measured && !extra ? '' : '≈ ') + kb(bytes + extra)
+    $('#p-size-note').textContent = t(measured && !extra ? 'size_measured_note' : 'size_npm_note')
     return
   }
-  $('#p-size').textContent = kb((entry == 'script' ? sizes.full : sizes[entry]).gzip)
+  $('#p-size').textContent = kb((entry == 'script' ? sizes.script : sizes[entry]).gzip)
   $('#p-size-note').textContent = entry == 'script' ? t('size_html') : fmt(t('size_ready_note'), { name: entry })
 }
 
@@ -903,6 +908,7 @@ const renderPlayground = () => {
   S.install = radio('p-install')
   S.api = radio('p-api')
   S.lmode = radio('p-lmode')
+  $('#p-legacy-row').hidden = S.install != 'npm'
   $('#p-api-hint').textContent = t(S.api == 'call' ? 'api_call_hint' : 'api_polyfill_hint')
   renderTargets()
   renderLangPicks()
@@ -944,6 +950,10 @@ for (const [id, key] of [
 }
 $('#p-native').addEventListener('change', (e) => {
   S.native = e.target.checked
+  renderCode()
+})
+$('#p-legacy').addEventListener('change', (e) => {
+  S.legacy = e.target.checked
   renderCode()
 })
 for (const r of $$('input[name="p-preset"]')) {
@@ -1085,6 +1095,8 @@ const renderSizes = async () => {
       ['common', 'size_common'],
       ['all', 'size_all'],
       ['full', 'size_full'],
+      ['legacy', 'size_legacy'],
+      ['script', 'size_script'],
     ].map(([k, label]) => {
       const tr = h('tr')
       tr.append(
@@ -1143,7 +1155,7 @@ const renderCompat = async () => {
   } catch {
     return
   }
-  const { groups, names, features, sheet, noLinux } = compat
+  const { groups, names, features, sheet, core, noLinux } = compat
   const columns = [...groups.desktop, ...groups.mobile]
   const notes = []
   // Footnote number for a text, numbering new ones as they come
@@ -1151,6 +1163,10 @@ const renderCompat = async () => {
   // "Chrome and Edge", "Chrome 和 Edge"…
   const browserList = new Intl.ListFormat(L).format(noLinux.map((b) => names[b]))
   const linuxNote = noLinux.length && fmt(t('compat_linux'), { browsers: browserList })
+  // The sheet's versions are with /legacy: the newer ones without it
+  const legacyNote = fmt(t('compat_legacy'), {
+    browsers: new Intl.ListFormat(L).format([...new Set(Object.entries(core).map(([b, v]) => `${names[b]} ${v}`))]),
+  })
 
   // Three header rows: desktop or mobile; the browser; the OS, for the browsers that get one column per OS
   const th = (text, cls, scope) => {
@@ -1208,7 +1224,7 @@ const renderCompat = async () => {
           ? null
           : files
             ? { kind: 'polyf', text: t('compat_save') }
-            : { kind: 'poly', text: sheet[c.b] }
+            : { kind: 'poly', text: sheet[c.b], note: core[c.b] && note(legacyNote) }
       const td = compatCell(front, back, i++)
       // A line after each browser that has one column per OS
       if (c.os == 'linux') td.classList.add('end')

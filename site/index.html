@@ -141,6 +141,7 @@
                 </div>
               </div>
               <p class="hint" id="p-api-hint"></p>
+              <label class="check" id="p-legacy-row"><input type="checkbox" id="p-legacy" /><span data-t="play_legacy"></span></label>
             </fieldset>
 
             <fieldset>
@@ -368,6 +369,10 @@ const id = await share({ url: location.href }, { targets: [copy, qr, x] })
 // 'native', 'copy', 'qr' or 'x'</pre>
           </div>
           <div class="usage-item">
+            <p data-th="usage_legacy_html"></p>
+            <pre class="code" data-code="js">import 'web-share-polyfill/legacy'</pre>
+          </div>
+          <div class="usage-item">
             <p data-th="usage_script_html"></p>
             <pre class="code" data-code="html">&lt;script src="https://cdn.jsdelivr.net/npm/web-share-polyfill"&gt;&lt;/script&gt;
 &lt;script&gt;
@@ -443,6 +448,7 @@ const id = await share({ url: location.href }, { targets: [copy, qr, x] })
 
 /* Parts: sheet, close, target, icon, label */
 web-share-polyfill::part(target) { border-radius: 8px; }</pre>
+        <p class="para" data-th="style_legacy_html"></p>
       </section>
 
       <section id="how" class="section wrap">
