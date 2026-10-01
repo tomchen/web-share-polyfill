@@ -121,7 +121,7 @@ With the script tag, the same API is on `window.WebSharePolyfill`:
 </script>
 ```
 
-[Try it](https://web-share-polyfill.js.org/#playground) on the site: it builds any of these setups for you (npm or script tag, targets, languages, fallback, look, text) and gives you the code to paste.
+[Try it](https://web-share-polyfill.js.org/#try) on the site: it builds any of these setups for you (npm or script tag, targets, languages, fallback, look, text) and gives you the code to paste.
 
 ## Options
 

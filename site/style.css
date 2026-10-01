@@ -1235,7 +1235,7 @@ button.icon-link {
   transform-style: preserve-3d;
   transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.3, 1) var(--d, 0ms);
 }
-#support.poly .flips .cc-in {
+#browser.poly .flips .cc-in {
   transform: rotateY(180deg);
 }
 .cc-face {

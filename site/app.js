@@ -1142,8 +1142,8 @@ const compatCell = (front, back, i) => {
 /** Show the polyfill's side or the native one, and keep the hidden faces away from screen readers. */
 const applyCompat = () => {
   const on = $('#compat-on').checked
-  $('#support').classList.toggle('poly', on)
-  for (const td of $$('#support .flips')) {
+  $('#browser').classList.toggle('poly', on)
+  for (const td of $$('#browser .flips')) {
     td.querySelector('.cc-f').setAttribute('aria-hidden', on)
     td.querySelector('.cc-b').setAttribute('aria-hidden', !on)
   }
