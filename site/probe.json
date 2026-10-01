@@ -52,6 +52,13 @@
         "canShare": false
       }
     },
+    "opera": {
+      "linux": {
+        "version": "136",
+        "share": false,
+        "canShare": false
+      }
+    },
     "safari": {
       "macos": {
         "version": "26.6",

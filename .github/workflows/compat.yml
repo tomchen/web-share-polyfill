@@ -23,6 +23,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      # Opera isn't on the runners. If it fails to install, the others are still tested and Opera keeps its
+      # last results (see --merge)
+      - name: Install Opera
+        continue-on-error: true
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            Linux)
+              curl -fsSL https://deb.opera.com/archive.key | sudo gpg --dearmor -o /usr/share/keyrings/opera.gpg
+              echo 'deb [signed-by=/usr/share/keyrings/opera.gpg] https://deb.opera.com/opera-stable/ stable non-free' |
+                sudo tee /etc/apt/sources.list.d/opera-stable.list
+              sudo apt-get update -q
+              sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq opera-stable
+              ;;
+            Windows) choco install opera -y --no-progress ;;
+            macOS) brew install --cask opera ;;
+          esac
       - run: node scripts/probe.mjs > probe-${{ matrix.os }}.json
       - run: cat probe-${{ matrix.os }}.json
       - uses: actions/upload-artifact@v4

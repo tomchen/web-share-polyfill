@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/web-share-polyfill)](https://www.npmjs.com/package/web-share-polyfill) [![CI](https://github.com/tomchen/web-share-polyfill/actions/workflows/ci.yml/badge.svg)](https://github.com/tomchen/web-share-polyfill/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-`navigator.share()` for every browser. When the browser has its own share sheet, it is used. When it doesn't (Chrome and Edge on Linux, Firefox on desktop, in-app browsers, iframes without permission), a small share sheet that looks like the native one opens instead: copy link, QR code, email, SMS, and 40+ apps, in 70 languages.
+`navigator.share()` for every browser. When the browser has its own share sheet, it is used. When it doesn't (Chrome, Edge and Opera on Linux, Firefox on desktop, in-app browsers, iframes without permission), a small share sheet that looks like the native one opens instead: copy link, QR code, email, SMS, and 40+ apps, in 70 languages.
 
 **[Docs, live demo & code builder](https://web-share-polyfill.js.org/)**
 
@@ -256,8 +256,8 @@ The native `navigator.share()` has restrictions that the polyfill doesn't have. 
 | Must be called right from a click or a tap, or it throws `NotAllowedError` | Any time: after an `await`, in a timer… |
 | In an iframe, only with `allow="web-share"`, or it throws `NotAllowedError` | Any iframe |
 | `http:` and `https:` links only, or it throws `TypeError` | Any link: `mailto:`, `tel:`, app links… |
-| Not in desktop Firefox, Chrome and Edge on Linux, Android WebView and many in-app browsers | Every browser |
-| Files: some types only (Chrome), and none in desktop Firefox, Chrome and Edge on Linux or Android WebView | Any file: saved, or copied (one image or text file) |
+| Not in desktop Firefox, Chrome, Edge and Opera on Linux, Android WebView and many in-app browsers | Every browser |
+| Files: some types only (Chrome), and none in desktop Firefox, Chrome, Edge and Opera on Linux or Android WebView | Any file: saved, or copied (one image or text file) |
 
 ## How it decides
 

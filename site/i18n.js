@@ -63,10 +63,10 @@ export const T = {
     beyond_3p: 'Any iframe',
     beyond_4n: '<code>http:</code> and <code>https:</code> links only, or it throws <code>TypeError</code>',
     beyond_4p: 'Any link: <code>mailto:</code>, <code>tel:</code>, app links…',
-    beyond_5n: 'Missing in desktop Firefox, Chrome and Edge on Linux, Android WebView and many in-app browsers',
+    beyond_5n: 'Missing in desktop Firefox, Chrome, Edge and Opera on Linux, Android WebView and many in-app browsers',
     beyond_5p: 'Every browser',
     beyond_6n:
-      'Files: some types only (Chrome), and none in desktop Firefox, Chrome and Edge on Linux or Android WebView',
+      'Files: some types only (Chrome), and none in desktop Firefox, Chrome, Edge and Opera on Linux or Android WebView',
     beyond_6p: 'Any file: saved, or copied (one image or text file)',
     fact_targets: 'share targets',
     fact_langs: 'languages',
@@ -283,9 +283,10 @@ export const T = {
     beyond_3p: '任何 iframe',
     beyond_4n: '只接受 <code>http:</code> 和 <code>https:</code> 链接，否则抛出 <code>TypeError</code>',
     beyond_4p: '任何链接：<code>mailto:</code>、<code>tel:</code>、应用链接……',
-    beyond_5n: '桌面版 Firefox、Linux 上的 Chrome 和 Edge、Android WebView 和许多应用内浏览器都没有',
+    beyond_5n: '桌面版 Firefox、Linux 上的 Chrome、Edge 和 Opera、Android WebView 和许多应用内浏览器都没有',
     beyond_5p: '所有浏览器',
-    beyond_6n: '文件：只支持部分类型（Chrome），桌面版 Firefox、Linux 上的 Chrome 和 Edge、Android WebView 都不支持',
+    beyond_6n:
+      '文件：只支持部分类型（Chrome），桌面版 Firefox、Linux 上的 Chrome、Edge 和 Opera、Android WebView 都不支持',
     beyond_6p: '任何文件：保存，或复制（单张图片或单个文本文件）',
     fact_targets: '个分享目标',
     fact_langs: '种语言',
@@ -491,9 +492,10 @@ export const T = {
     beyond_3p: '任何 iframe',
     beyond_4n: '只接受 <code>http:</code> 和 <code>https:</code> 連結，否則拋出 <code>TypeError</code>',
     beyond_4p: '任何連結：<code>mailto:</code>、<code>tel:</code>、應用程式連結……',
-    beyond_5n: '桌面版 Firefox、Linux 上的 Chrome 和 Edge、Android WebView 及許多應用程式內瀏覽器都沒有',
+    beyond_5n: '桌面版 Firefox、Linux 上的 Chrome、Edge 和 Opera、Android WebView 及許多應用程式內瀏覽器都沒有',
     beyond_5p: '所有瀏覽器',
-    beyond_6n: '檔案：只支援部分類型（Chrome），桌面版 Firefox、Linux 上的 Chrome 和 Edge、Android WebView 都不支援',
+    beyond_6n:
+      '檔案：只支援部分類型（Chrome），桌面版 Firefox、Linux 上的 Chrome、Edge 和 Opera、Android WebView 都不支援',
     beyond_6p: '任何檔案：儲存，或複製（單張圖片或單個文字檔）',
     fact_targets: '個分享目標',
     fact_langs: '種語言',
@@ -704,10 +706,11 @@ export const T = {
     beyond_3p: 'どの iframe でも',
     beyond_4n: '<code>http:</code> と <code>https:</code> のリンクのみで、それ以外は <code>TypeError</code>',
     beyond_4p: 'どんなリンクでも：<code>mailto:</code>、<code>tel:</code>、アプリのリンクなど',
-    beyond_5n: 'デスクトップ版 Firefox、Linux の Chrome と Edge、Android WebView、多くのアプリ内ブラウザーにはない',
+    beyond_5n:
+      'デスクトップ版 Firefox、Linux の Chrome、Edge、Opera、Android WebView、多くのアプリ内ブラウザーにはない',
     beyond_5p: 'すべてのブラウザー',
     beyond_6n:
-      'ファイル：一部の形式のみ（Chrome）。デスクトップ版 Firefox、Linux の Chrome と Edge、Android WebView では不可',
+      'ファイル：一部の形式のみ（Chrome）。デスクトップ版 Firefox、Linux の Chrome、Edge、Opera、Android WebView では不可',
     beyond_6p: 'どんなファイルでも：保存、またはコピー（画像 1 枚かテキストファイル 1 つ）',
     fact_targets: '種類の共有先',
     fact_langs: '言語',
@@ -928,10 +931,10 @@ export const T = {
     beyond_4n: 'Liens <code>http:</code> et <code>https:</code> uniquement, sinon <code>TypeError</code>',
     beyond_4p: 'N’importe quel lien : <code>mailto:</code>, <code>tel:</code>, liens d’applis…',
     beyond_5n:
-      'Absent de Firefox pour ordinateur, de Chrome et Edge sous Linux, d’Android WebView et de nombreux navigateurs intégrés aux applis',
+      'Absent de Firefox pour ordinateur, de Chrome, Edge et Opera sous Linux, d’Android WebView et de nombreux navigateurs intégrés aux applis',
     beyond_5p: 'Tous les navigateurs',
     beyond_6n:
-      'Fichiers : certains types seulement (Chrome), et aucun dans Firefox pour ordinateur, Chrome et Edge sous Linux ou Android WebView',
+      'Fichiers : certains types seulement (Chrome), et aucun dans Firefox pour ordinateur, Chrome, Edge et Opera sous Linux ou Android WebView',
     beyond_6p: 'Tout fichier : enregistré, ou copié (une image ou un fichier texte)',
     fact_targets: 'cibles de partage',
     fact_langs: 'langues',
@@ -1156,10 +1159,10 @@ export const T = {
     beyond_4n: 'Solo enlaces <code>http:</code> y <code>https:</code>; si no, <code>TypeError</code>',
     beyond_4p: 'Cualquier enlace: <code>mailto:</code>, <code>tel:</code>, enlaces de apps…',
     beyond_5n:
-      'No existe en Firefox de escritorio, Chrome y Edge en Linux, Android WebView ni muchos navegadores integrados en apps',
+      'No existe en Firefox de escritorio, Chrome, Edge y Opera en Linux, Android WebView ni muchos navegadores integrados en apps',
     beyond_5p: 'Todos los navegadores',
     beyond_6n:
-      'Archivos: solo algunos tipos (Chrome), y ninguno en Firefox de escritorio, Chrome y Edge en Linux o Android WebView',
+      'Archivos: solo algunos tipos (Chrome), y ninguno en Firefox de escritorio, Chrome, Edge y Opera en Linux o Android WebView',
     beyond_6p: 'Cualquier archivo: se guarda o se copia (una imagen o un archivo de texto)',
     fact_targets: 'destinos',
     fact_langs: 'idiomas',

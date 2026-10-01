@@ -1114,6 +1114,8 @@ const renderSizes = async () => {
 
 let compat
 const OSES = { windows: 'Windows', macos: 'macOS', linux: 'Linux' }
+// Short in the table, to keep it narrow; the full names are in the title and for screen readers
+const OS_SHORT = { windows: 'Win', macos: 'Mac', linux: 'Linux' }
 const fmt = (s, values) => s.replace(/\{(\w+)\}/g, (_, k) => values[k])
 
 /** A cell: what the browser does alone (front), and what it does with the polyfill (back), if that differs. */
@@ -1178,8 +1180,12 @@ const renderCompat = async () => {
   const corner = h('td')
   corner.rowSpan = 3
   rows[0].append(corner)
+  // The last desktop column: a line between desktop and mobile
+  const split = groups.desktop.length - 1
+  // A line after each browser with one column per OS, and before it (after Firefox, before Opera)
+  const line = (i) => columns[i].os == 'linux' || (!columns[i].os && columns[i + 1]?.os)
   for (const g of ['desktop', 'mobile']) {
-    const e = th(t('compat_' + g), 'grp', 'colgroup')
+    const e = th(t('compat_' + g), g == 'desktop' ? 'grp end split' : 'grp', 'colgroup')
     e.colSpan = groups[g].length
     rows[0].append(e)
   }
@@ -1190,11 +1196,15 @@ const renderCompat = async () => {
         e.colSpan = columns.filter((d) => d.b == c.b).length
         rows[1].append(e)
       }
-      const e = th(OSES[c.os], c.os == 'linux' ? 'os end' : 'os', 'col')
+      const e = th(OS_SHORT[c.os], c.os == 'linux' ? 'os end' : 'os', 'col')
+      if (OS_SHORT[c.os] != OSES[c.os]) {
+        e.title = OSES[c.os]
+        e.setAttribute('aria-label', OSES[c.os])
+      }
       if (c.os == 'linux' && noLinux.includes(c.b)) e.append(h('sup', '', note(linuxNote)))
       rows[2].append(e)
     } else {
-      const e = th(names[c.b], 'br', 'col')
+      const e = th(names[c.b], i == split ? 'br end split' : line(i) ? 'br end' : 'br', 'col')
       e.rowSpan = 2
       rows[1].append(e)
     }
@@ -1211,7 +1221,7 @@ const renderCompat = async () => {
     rowHead.append(h('code', '', feature))
     if (files) rowHead.append(h('sup', '', note(t('compat_files'))))
     tr.append(rowHead)
-    for (const c of columns) {
+    for (const [j, c] of columns.entries()) {
       const s = support[c.os ? `${c.b}:${c.os}` : c.b]
       const front = !s.v
         ? { kind: 'no', text: t('compat_no') }
@@ -1226,8 +1236,8 @@ const renderCompat = async () => {
             ? { kind: 'polyf', text: t('compat_save') }
             : { kind: 'poly', text: sheet[c.b], note: core[c.b] && note(legacyNote) }
       const td = compatCell(front, back, i++)
-      // A line after each browser that has one column per OS
-      if (c.os == 'linux') td.classList.add('end')
+      if (line(j)) td.classList.add('end')
+      if (j == split) td.classList.add('end', 'split')
       tr.append(td)
     }
     body.append(tr)

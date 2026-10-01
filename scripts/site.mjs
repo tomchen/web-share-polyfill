@@ -13,8 +13,8 @@ const { version } = JSON.parse(readFileSync('package.json', 'utf8'))
 writeFileSync('_site/lib/meta.json', JSON.stringify({ version }) + '\n')
 
 // Browser support table: MDN's data, our own tests in real browsers on each OS (site/probe.json), and what
-// the sheet needs. Chrome and Edge get a column per OS, since that is where they differ.
-const SPLIT = ['chrome', 'edge']
+// the sheet needs. Chrome, Edge and Opera get a column per OS, since that is where they differ.
+const SPLIT = ['chrome', 'edge', 'opera']
 const OSES = ['windows', 'macos', 'linux']
 const col = (b) => (SPLIT.includes(b) ? OSES.map((os) => ({ b, os })) : [{ b }])
 const GROUPS = {

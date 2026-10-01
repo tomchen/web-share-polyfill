@@ -13,13 +13,15 @@ import { join } from 'node:path'
 const OUT = 'site/probe.json'
 
 if (process.argv[2] == '--merge') {
-  const results = {}
+  const old = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : {}
+  // On top of the last results: a browser that couldn't be tested this time (it failed to install or
+  // start) keeps them
+  const results = structuredClone(old.results || {})
   for (const file of process.argv.slice(3)) {
     const { os, browsers } = JSON.parse(readFileSync(file, 'utf8'))
     for (const [b, r] of Object.entries(browsers)) (results[b] ??= {})[os] = r
   }
   // Keep the old date when nothing changed, so the file only changes with the results
-  const old = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : {}
   const same = JSON.stringify(old.results) == JSON.stringify(results)
   const tested = same ? old.tested : new Date().toISOString().slice(0, 10)
   writeFileSync(OUT, JSON.stringify({ tested, results }, null, 2) + '\n')
@@ -30,6 +32,7 @@ if (process.argv[2] == '--merge') {
 const OS = { linux: 'linux', win32: 'windows', darwin: 'macos' }[platform()]
 const PF = process.env.ProgramFiles || 'C:\\Program Files'
 const PF86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)'
+const LAD = process.env.LOCALAPPDATA || ''
 const APPS = {
   chrome: {
     linux: ['/opt/google/chrome/chrome', '/usr/bin/google-chrome'],
@@ -46,12 +49,18 @@ const APPS = {
     windows: [`${PF}\\Mozilla Firefox\\firefox.exe`, `${PF86}\\Mozilla Firefox\\firefox.exe`],
     macos: ['/Applications/Firefox.app/Contents/MacOS/firefox'],
   },
+  opera: {
+    linux: ['/usr/lib/x86_64-linux-gnu/opera-stable/opera', '/usr/lib/x86_64-linux-gnu/opera/opera', '/snap/bin/opera'],
+    windows: [`${LAD}\\Programs\\Opera\\opera.exe`, `${PF}\\Opera\\opera.exe`, `${PF86}\\Opera\\opera.exe`],
+    macos: ['/Applications/Opera.app/Contents/MacOS/Opera'],
+  },
   safari: { macos: ['/Applications/Safari.app'] },
 }
 const VERSION = {
   chrome: /Chrome\/(\d+)/,
   edge: /Edg\/(\d+)/,
   firefox: /Firefox\/(\d+)/,
+  opera: /OPR\/(\d+)/,
   safari: /Version\/(\d+(?:\.\d+)?)/,
 }
 

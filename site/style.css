@@ -1206,6 +1206,9 @@ button.icon-link {
   text-align: center;
   vertical-align: bottom;
 }
+.compat .br {
+  vertical-align: middle;
+}
 .compat .grp {
   border-bottom: 1px solid var(--line);
   color: var(--muted);
@@ -1382,6 +1385,10 @@ a.btn {
   right: -3px;
   bottom: -2px;
   border-right: 1px solid var(--line);
+}
+/* Between desktop and mobile: a stronger one */
+.compat .split::after {
+  border-right-color: var(--muted);
 }
 
 /* Click to copy */
