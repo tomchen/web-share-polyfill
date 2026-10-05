@@ -1,5 +1,5 @@
 {
-  "tested": "2026-09-25",
+  "tested": "2026-10-05",
   "results": {
     "chrome": {
       "macos": {
@@ -8,12 +8,12 @@
         "canShare": true
       },
       "linux": {
-        "version": "153",
+        "version": "154",
         "share": false,
         "canShare": false
       },
       "windows": {
-        "version": "153",
+        "version": "154",
         "share": true,
         "canShare": true
       }
@@ -57,6 +57,16 @@
         "version": "136",
         "share": false,
         "canShare": false
+      },
+      "macos": {
+        "version": "135",
+        "share": true,
+        "canShare": true
+      },
+      "windows": {
+        "version": "136",
+        "share": true,
+        "canShare": true
       }
     },
     "safari": {
