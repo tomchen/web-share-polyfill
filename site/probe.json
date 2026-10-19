@@ -1,43 +1,43 @@
 {
-  "tested": "2026-10-12",
+  "tested": "2026-10-19",
   "results": {
     "chrome": {
       "macos": {
-        "version": "152",
+        "version": "155",
         "share": true,
         "canShare": true
       },
       "linux": {
-        "version": "154",
+        "version": "155",
         "share": false,
         "canShare": false
       },
       "windows": {
-        "version": "154",
+        "version": "155",
         "share": true,
         "canShare": true
       }
     },
     "edge": {
       "macos": {
-        "version": "152",
+        "version": "155",
         "share": true,
         "canShare": true
       },
       "linux": {
-        "version": "154",
+        "version": "155",
         "share": false,
         "canShare": false
       },
       "windows": {
-        "version": "153",
+        "version": "154",
         "share": true,
         "canShare": true
       }
     },
     "firefox": {
       "macos": {
-        "version": "155",
+        "version": "157",
         "share": false,
         "canShare": false
       },
@@ -47,7 +47,7 @@
         "canShare": false
       },
       "windows": {
-        "version": "156",
+        "version": "157",
         "share": false,
         "canShare": false
       }
@@ -59,7 +59,7 @@
         "canShare": false
       },
       "macos": {
-        "version": "135",
+        "version": "137",
         "share": true,
         "canShare": true
       },
