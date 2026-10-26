@@ -1,9 +1,9 @@
 {
-  "tested": "2026-10-19",
+  "tested": "2026-10-26",
   "results": {
     "chrome": {
       "macos": {
-        "version": "155",
+        "version": "156",
         "share": true,
         "canShare": true
       },
@@ -13,7 +13,7 @@
         "canShare": false
       },
       "windows": {
-        "version": "155",
+        "version": "156",
         "share": true,
         "canShare": true
       }
@@ -30,14 +30,14 @@
         "canShare": false
       },
       "windows": {
-        "version": "154",
+        "version": "155",
         "share": true,
         "canShare": true
       }
     },
     "firefox": {
       "macos": {
-        "version": "157",
+        "version": "158",
         "share": false,
         "canShare": false
       },
@@ -47,7 +47,7 @@
         "canShare": false
       },
       "windows": {
-        "version": "157",
+        "version": "158",
         "share": false,
         "canShare": false
       }
@@ -59,12 +59,12 @@
         "canShare": false
       },
       "macos": {
-        "version": "137",
+        "version": "138",
         "share": true,
         "canShare": true
       },
       "windows": {
-        "version": "137",
+        "version": "138",
         "share": true,
         "canShare": true
       }
