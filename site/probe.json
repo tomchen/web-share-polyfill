@@ -1,5 +1,5 @@
 {
-  "tested": "2026-10-26",
+  "tested": "2026-11-02",
   "results": {
     "chrome": {
       "macos": {
@@ -8,7 +8,7 @@
         "canShare": true
       },
       "linux": {
-        "version": "155",
+        "version": "156",
         "share": false,
         "canShare": false
       },
@@ -20,7 +20,7 @@
     },
     "edge": {
       "macos": {
-        "version": "155",
+        "version": "156",
         "share": true,
         "canShare": true
       },
@@ -30,7 +30,7 @@
         "canShare": false
       },
       "windows": {
-        "version": "155",
+        "version": "156",
         "share": true,
         "canShare": true
       }
@@ -42,12 +42,12 @@
         "canShare": false
       },
       "linux": {
-        "version": "157",
+        "version": "158",
         "share": false,
         "canShare": false
       },
       "windows": {
-        "version": "158",
+        "version": "159",
         "share": false,
         "canShare": false
       }
@@ -64,7 +64,7 @@
         "canShare": true
       },
       "windows": {
-        "version": "138",
+        "version": "139",
         "share": true,
         "canShare": true
       }
