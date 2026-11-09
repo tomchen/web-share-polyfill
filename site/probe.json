@@ -1,5 +1,5 @@
 {
-  "tested": "2026-11-02",
+  "tested": "2026-11-09",
   "results": {
     "chrome": {
       "macos": {
@@ -25,7 +25,7 @@
         "canShare": true
       },
       "linux": {
-        "version": "155",
+        "version": "156",
         "share": false,
         "canShare": false
       },
@@ -37,12 +37,12 @@
     },
     "firefox": {
       "macos": {
-        "version": "158",
+        "version": "159",
         "share": false,
         "canShare": false
       },
       "linux": {
-        "version": "158",
+        "version": "159",
         "share": false,
         "canShare": false
       },
@@ -59,7 +59,7 @@
         "canShare": false
       },
       "macos": {
-        "version": "138",
+        "version": "139",
         "share": true,
         "canShare": true
       },
@@ -71,7 +71,7 @@
     },
     "safari": {
       "macos": {
-        "version": "26.6",
+        "version": "27.2",
         "share": true,
         "canShare": true
       }
